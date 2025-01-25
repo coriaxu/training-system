@@ -2,16 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { BudgetData, getBudgetByMonth } from '@/app/lib/budgetStorage';
-import { ExpenseRecord, getExpenseRecords } from '@/app/lib/expenseStorage';
+import { Expense, getExpenses } from '@/app/lib/expenseStorage';
 
 export function BudgetStats() {
   const [currentBudget, setCurrentBudget] = useState<BudgetData | null>(null);
-  const [expenses, setExpenses] = useState<ExpenseRecord[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
 
   useEffect(() => {
     const currentMonth = new Date().toISOString().slice(0, 7);
     const budget = getBudgetByMonth(currentMonth);
-    const expenseRecords = getExpenseRecords();
+    const expenseRecords = getExpenses();
     
     setCurrentBudget(budget);
     setExpenses(expenseRecords.filter(e => e.date.startsWith(currentMonth)));
