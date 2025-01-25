@@ -3,6 +3,8 @@
 import { BudgetData } from '@/app/lib/budgetStorage';
 import { Expense } from '@/app/lib/expenseStorage';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts';
+import { useRef } from 'react';
+import { saveAs } from 'file-saver';
 
 interface ReportChartsProps {
   budget: BudgetData | null;
