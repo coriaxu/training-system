@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import XLSX from 'xlsx';
+import * as XLSX from 'xlsx';
 import { db } from '@/app/lib/db';
 import { historicalTrainings } from '@/app/lib/schema';
 import { validateTrainingData } from '@/app/lib/validators';

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import BudgetOverview from '@/components/budget/BudgetOverview';
 import ExpenseForm from '@/components/budget/ExpenseForm';
 import ExpenseTable from '@/components/budget/ExpenseTable';
@@ -11,29 +11,50 @@ import { v4 as uuidv4 } from 'uuid';
 import { getBudgetByMonth, saveBudgetData } from '@/app/lib/budgetStorage';
 import { getExpenses } from '@/app/lib/expenseStorage';
 
-// 获取初始数据
-const getInitialData = () => {
-  const currentMonth = new Date().toISOString().slice(0, 7);
-  const budget = getBudgetByMonth(currentMonth) || {
-    total: 0,
-    used: 0,
-    remaining: 0,
-    warningThreshold: 80,
-    courseTypeBudgets: []
-  };
-  const expenses = getExpenses().filter((e: Expense) => e.date.startsWith(currentMonth));
-  return { budget, expenses };
+// 默认预算数据
+const defaultBudget: Budget = {
+  total: 0,
+  used: 0,
+  remaining: 0,
+  warningThreshold: 80,
+  courseTypeBudgets: []
 };
 
-const { budget: initialBudget, expenses: initialExpenses } = getInitialData();
-
 export default function BudgetPage() {
-  const [budget, setBudget] = useState<Budget>(initialBudget as Budget);
-  const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
+  const [budget, setBudget] = useState<Budget>(defaultBudget);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [budgetFormOpen, setBudgetFormOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  // 加载初始数据
+  useEffect(() => {
+    const loadInitialData = async () => {
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      const budgetData = await getBudgetByMonth(currentMonth);
+      const expensesData = await getExpenses();
+      
+      if (budgetData) {
+        setBudget({
+          total: budgetData.totalBudget,
+          used: 0, // 这个值需要根据实际支出计算
+          remaining: budgetData.totalBudget,
+          warningThreshold: 80,
+          courseTypeBudgets: budgetData.courseTypeBudgets
+        });
+      }
+
+      if (expensesData) {
+        const currentMonthExpenses = expensesData.filter(
+          (e: Expense) => e.date.startsWith(currentMonth)
+        );
+        setExpenses(currentMonthExpenses);
+      }
+    };
+
+    loadInitialData();
+  }, []);
 
   const showToastMessage = (message: string) => {
     // 临时实现，后续可以替换成统一的toast组件
