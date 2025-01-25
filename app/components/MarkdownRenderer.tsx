@@ -2,7 +2,7 @@
 
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { Components, CodeProps } from 'react-markdown/lib/ast-to-react';
+import { Components } from 'react-markdown';
 
 interface MarkdownRendererProps {
   content: string;
@@ -13,7 +13,7 @@ export function MarkdownRenderer({
   content,
   className = '',
 }: MarkdownRendererProps) {
-  const components: Components = {
+  const components: Partial<Components> = {
     h1: ({ children }) => (
       <h1 className="text-2xl font-bold text-gray-900 mb-4">{children}</h1>
     ),
@@ -47,9 +47,10 @@ export function MarkdownRenderer({
         {children}
       </blockquote>
     ),
-    code: ({ inline, className, children }: CodeProps) => {
+    code: ({ children, className, node, ...props }) => {
       const match = /language-(\w+)/.exec(className || '');
-      return !inline ? (
+      const isInline = !node?.position?.start.line;
+      return !isInline ? (
         <pre className="bg-gray-50 rounded-lg p-4 overflow-x-auto">
           <code className={match ? `language-${match[1]}` : ''}>
             {String(children).replace(/\n$/, '')}
