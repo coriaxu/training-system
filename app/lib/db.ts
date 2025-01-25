@@ -1,4 +1,8 @@
 import { sql } from '@vercel/postgres';
+import { drizzle } from 'drizzle-orm/vercel-postgres';
+
+// 导出数据库实例
+export const db = drizzle(sql);
 
 // 创建预算表
 export async function createBudgetTable() {
@@ -47,14 +51,15 @@ export async function createExpenseTable() {
 export async function createTrainingTable() {
   try {
     await sql`
-      CREATE TABLE IF NOT EXISTS trainings (
+      CREATE TABLE IF NOT EXISTS historical_trainings (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        course_type VARCHAR(50) NOT NULL,
+        year INTEGER NOT NULL,
         course_name VARCHAR(255) NOT NULL,
-        instructor VARCHAR(100) NOT NULL,
-        date DATE NOT NULL,
         participants INTEGER NOT NULL,
         duration DECIMAL(4,1) NOT NULL,
+        department VARCHAR(50) NOT NULL,
+        training_date TIMESTAMP NOT NULL,
+        cost DECIMAL(10,2),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
