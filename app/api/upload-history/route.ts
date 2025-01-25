@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import * as XLSX from 'xlsx';
+import { read, utils } from 'xlsx';
 import { db } from '@/app/lib/db';
 import { historicalTrainings } from '@/app/lib/schema';
 import { validateTrainingData } from '@/app/lib/validators';
@@ -14,9 +14,9 @@ export async function POST(req: Request) {
 
   try {
     const buffer = await file.arrayBuffer();
-    const workbook = XLSX.read(buffer, { type: 'buffer' });
+    const workbook = read(buffer, { type: 'buffer' });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const jsonData = XLSX.utils.sheet_to_json(sheet);
+    const jsonData = utils.sheet_to_json(sheet);
 
     // 数据验证
     const validationResult = await validateTrainingData(jsonData);
