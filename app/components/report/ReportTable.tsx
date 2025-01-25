@@ -1,12 +1,12 @@
 'use client';
 
 import { BudgetData } from '@/app/lib/budgetStorage';
-import { ExpenseRecord } from '@/app/lib/expenseStorage';
+import { Expense } from '@/app/lib/expenseStorage';
 
 interface ReportTableProps {
   month: string;
   budget: BudgetData | null;
-  expenses: ExpenseRecord[];
+  expenses: Expense[];
 }
 
 interface ReportData {

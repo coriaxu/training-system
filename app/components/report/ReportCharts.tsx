@@ -1,12 +1,12 @@
 'use client';
 
 import { BudgetData } from '@/app/lib/budgetStorage';
-import { ExpenseRecord } from '@/app/lib/expenseStorage';
+import { Expense } from '@/app/lib/expenseStorage';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts';
 
 interface ReportChartsProps {
   budget: BudgetData | null;
-  expenses: ExpenseRecord[];
+  expenses: Expense[];
 }
 
 interface ChartData {
