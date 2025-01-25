@@ -47,7 +47,7 @@ export function MarkdownRenderer({
         {children}
       </blockquote>
     ),
-    code: ({ children, className, node, ...props }) => {
+    code: ({ children, className, node }) => { // 已修复此行
       const match = /language-(\w+)/.exec(className || '');
       const isInline = !node?.position?.start.line;
       return !isInline ? (
