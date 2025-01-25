@@ -1,17 +1,16 @@
 import { useState } from 'react';
-import { ExpenseFormData, ExpenseType, BudgetType } from '@/types/budget';
+import { ExpenseFormData, BudgetType } from '@/types/budget';
 
 interface ExpenseFormProps {
   onSubmit: (data: ExpenseFormData) => void;
-  onCancel: () => void;
+  onClose: () => void;
 }
 
-export default function ExpenseForm({ onSubmit, onCancel }: ExpenseFormProps) {
+export default function ExpenseForm({ onSubmit, onClose }: ExpenseFormProps) {
   const [formData, setFormData] = useState<ExpenseFormData>({
     date: new Date().toISOString().split('T')[0],
     project: '',
     amount: 0,
-    type: 'training',
     budgetType: '日常培训开销',
     note: ''
   });
@@ -66,22 +65,6 @@ export default function ExpenseForm({ onSubmit, onCancel }: ExpenseFormProps) {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          支出类型
-        </label>
-        <select
-          className="form-select"
-          value={formData.type}
-          onChange={e => setFormData({ ...formData, type: e.target.value as ExpenseType })}
-          required
-        >
-          <option value="training">培训费用</option>
-          <option value="travel">差旅费用</option>
-          <option value="other">其他费用</option>
-        </select>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
           预算类型
         </label>
         <select
@@ -107,7 +90,7 @@ export default function ExpenseForm({ onSubmit, onCancel }: ExpenseFormProps) {
       </div>
 
       <div className="flex justify-end space-x-2">
-        <button type="button" className="btn-secondary" onClick={onCancel}>
+        <button type="button" className="btn-secondary" onClick={onClose}>
           取消
         </button>
         <button type="submit" className="btn-primary">

@@ -1,4 +1,6 @@
 import { Expense } from '@/types/budget';
+import { format } from 'date-fns';
+import { Edit2, Trash2 } from 'lucide-react';
 
 interface ExpenseTableProps {
   expenses: Expense[];
@@ -7,59 +9,69 @@ interface ExpenseTableProps {
 }
 
 export default function ExpenseTable({ expenses, onEdit, onDelete }: ExpenseTableProps) {
-  const getTypeText = (type: Expense['type']) => {
-    const types = {
-      training: '培训费用',
-      travel: '差旅费用',
-      other: '其他费用'
-    };
-    return types[type];
-  };
-
   return (
-    <div className="card">
-      <h2 className="text-heading-2 mb-6">支出记录</h2>
-      <div className="table-container">
-        <table className="table">
-          <thead>
-            <tr>
-              <th>日期</th>
-              <th>支出项目</th>
-              <th>金额</th>
-              <th>类型</th>
-              <th>备注</th>
-              <th>操作</th>
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              日期
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              项目
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              金额
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              预算类型
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              备注
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              操作
+            </th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {expenses.map((expense) => (
+            <tr key={expense.id}>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {format(new Date(expense.date), 'yyyy-MM-dd')}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {expense.project}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                ¥{expense.amount.toFixed(2)}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {expense.budgetType}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {expense.note || '-'}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => onEdit(expense)}
+                    className="text-blue-600 hover:text-blue-900"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => onDelete(expense.id)}
+                    className="text-red-600 hover:text-red-900"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {expenses.map((expense) => (
-              <tr key={expense.id}>
-                <td>{expense.date}</td>
-                <td>{expense.project}</td>
-                <td>¥{expense.amount.toLocaleString()}</td>
-                <td>{getTypeText(expense.type)}</td>
-                <td>{expense.note || '-'}</td>
-                <td>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => onEdit(expense)}
-                      className="text-primary hover:text-primary/80"
-                    >
-                      编辑
-                    </button>
-                    <button
-                      onClick={() => onDelete(expense.id)}
-                      className="text-red-500 hover:text-red-400"
-                    >
-                      删除
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
-} 
+}

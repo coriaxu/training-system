@@ -107,7 +107,7 @@ export default function BudgetPage() {
             </h2>
             <ExpenseForm
               onSubmit={handleAddExpense}
-              onCancel={() => {
+              onClose={() => {
                 setShowExpenseForm(false);
                 setEditingExpense(null);
               }}

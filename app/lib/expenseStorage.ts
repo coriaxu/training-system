@@ -1,6 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Expense, ExpenseFormData } from '@/types/budget';
 
+export type { Expense, ExpenseFormData };
+
 const EXPENSE_STORAGE_KEY = 'training_expenses';
 
 // 保存支出记录

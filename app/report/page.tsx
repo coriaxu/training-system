@@ -4,12 +4,12 @@ import { useState } from 'react';
 import { ReportTable } from '@/app/components/report/ReportTable';
 import { ReportCharts } from '@/app/components/report/ReportCharts';
 import { getBudgetByMonth } from '@/app/lib/budgetStorage';
-import { getExpenses } from '@/app/lib/expenseStorage';
+import { getExpenses } from '@/app/lib/expenseStorage'; // 注意这里是 getExpenses 不是 getExpenseRecords
 
 export default function ReportPage() {
-  const currentMonth = new Date().toISOString().slice(0, 7); // 格式：YYYY-MM
+  const currentMonth = new Date().toISOString().slice(0, 7);
   const budget = getBudgetByMonth(currentMonth);
-  const allExpenses = getExpenses();
+  const allExpenses = getExpenses(); // 这里也要改
   const currentMonthExpenses = allExpenses.filter(expense => expense.date.startsWith(currentMonth));
 
   return (
