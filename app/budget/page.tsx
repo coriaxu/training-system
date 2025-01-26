@@ -36,13 +36,7 @@ export default function BudgetPage() {
       const expensesData = await getExpenses();
       
       if (budgetData) {
-        setBudget({
-          total: budgetData.totalBudget,
-          used: 0, // 这个值需要根据实际支出计算
-          remaining: budgetData.totalBudget,
-          warningThreshold: 80,
-          courseTypeBudgets: budgetData.courseTypeBudgets
-        });
+        setBudget(budgetData); // budgetData 现在已经是正确的 Budget 类型
       }
 
       if (expensesData) {
@@ -56,119 +50,102 @@ export default function BudgetPage() {
     loadInitialData();
   }, []);
 
+  // 处理添加支出
+  const handleAddExpense = async (data: ExpenseFormData) => {
+    const newExpense: Expense = {
+      id: uuidv4(),
+      ...data,
+      createdAt: new Date().toISOString()
+    };
+
+    // 更新预算使用情况
+    const updatedBudget = {
+      ...budget,
+      used: budget.used + data.amount,
+      remaining: budget.total - (budget.used + data.amount)
+    };
+
+    setBudget(updatedBudget);
+    setExpenses([...expenses, newExpense]);
+    setShowExpenseForm(false);
+    
+    // 显示成功消息
+    showToastMessage('支出记录已添加');
+  };
+
+  // 处理删除支出
+  const handleDeleteExpense = async (id: string) => {
+    const expense = expenses.find(e => e.id === id);
+    if (!expense) return;
+
+    // 更新预算使用情况
+    const updatedBudget = {
+      ...budget,
+      used: budget.used - expense.amount,
+      remaining: budget.total - (budget.used - expense.amount)
+    };
+
+    setBudget(updatedBudget);
+    setExpenses(expenses.filter(e => e.id !== id));
+    
+    // 显示成功消息
+    showToastMessage('支出记录已删除');
+  };
+
   const showToastMessage = (message: string) => {
     // 临时实现，后续可以替换成统一的toast组件
     alert(message);
   };
 
-  const handleAddExpense = (data: ExpenseFormData) => {
-    const newExpense: Expense = {
-      id: uuidv4(),
-      ...data,
-      budgetType: '日常培训开销', // 默认设置为日常培训开销
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    setExpenses([newExpense, ...expenses]);
-    setBudget(currentBudget => ({
-      ...currentBudget,
-      used: currentBudget.used + data.amount,
-      remaining: currentBudget.remaining - data.amount
-    }));
-    setShowExpenseForm(false);
-  };
-
-  const handleEditExpense = (expense: Expense) => {
-    setEditingExpense(expense);
-    setShowExpenseForm(true);
-  };
-
-  const handleDeleteExpense = (id: string) => {
-    const expense = expenses.find(e => e.id === id);
-    if (!expense) return;
-
-    setExpenses(expenses.filter(e => e.id !== id));
-    setBudget(currentBudget => ({
-      ...currentBudget,
-      used: currentBudget.used - expense.amount,
-      remaining: currentBudget.remaining + expense.amount
-    }));
-  };
-
   return (
-    <div className="container mx-auto px-4 py-8 space-y-8">
-      <BudgetOverview budget={budget} />
-
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-heading-1">培训预算开销记录</h1>
-        <div className="flex items-center space-x-4">
+        <h1 className="text-2xl font-bold">预算管理</h1>
+        <div className="space-x-4">
           <button
-            className="btn-primary"
-            onClick={() => setShowExpenseForm(true)}
-          >
-            新增支出记录
-          </button>
-          <button
-            className="btn-primary"
             onClick={() => setBudgetFormOpen(true)}
+            className="btn btn-primary"
           >
             设置预算
+          </button>
+          <button
+            onClick={() => setShowExpenseForm(true)}
+            className="btn btn-secondary"
+          >
+            添加支出
           </button>
         </div>
       </div>
 
-      <Statistics expenses={expenses} />
+      <BudgetOverview budget={budget} />
+      
+      <Statistics budget={budget} expenses={expenses} />
+      
+      <ExpenseTable 
+        expenses={expenses} 
+        onDelete={handleDeleteExpense}
+        onEdit={setEditingExpense}
+      />
 
       {showExpenseForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
-            <h2 className="text-heading-2 mb-4">
-              {editingExpense ? '编辑支出记录' : '新增支出记录'}
-            </h2>
-            <ExpenseForm
-              onSubmit={handleAddExpense}
-              onClose={() => {
-                setShowExpenseForm(false);
-                setEditingExpense(null);
-              }}
-            />
-          </div>
-        </div>
+        <ExpenseForm
+          onSubmit={handleAddExpense}
+          onCancel={() => setShowExpenseForm(false)}
+          courseTypes={budget.courseTypeBudgets.map(b => b.type)}
+        />
       )}
 
       {budgetFormOpen && (
         <BudgetSettingForm
+          currentBudget={budget}
           onClose={() => setBudgetFormOpen(false)}
-          onSubmit={(data) => {
-            const totalBudget = data.courseTypeBudgets.reduce((sum, item) => sum + item.amount, 0);
-            const newBudget = {
-              ...budget,
-              total: totalBudget,
-              remaining: totalBudget - budget.used,
-              courseTypeBudgets: data.courseTypeBudgets
-            };
-            
-            // 保存到 localStorage
-            saveBudgetData({
-              month: data.month,
-              totalBudget,
-              courseTypeBudgets: data.courseTypeBudgets,
-              notes: ''
-            });
-            
+          onSave={async (newBudget) => {
             setBudget(newBudget);
             setBudgetFormOpen(false);
-            showToastMessage('预算设置已更新！');
+            showToastMessage('预算设置已更新');
           }}
         />
       )}
-
-      <ExpenseTable
-        expenses={expenses}
-        onEdit={handleEditExpense}
-        onDelete={handleDeleteExpense}
-      />
     </div>
   );
 }
