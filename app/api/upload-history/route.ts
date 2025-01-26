@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { read, utils } from 'xlsx';
+import { readFile, utils } from 'xlsx';
 import { db } from '@/app/lib/db';
 import { historicalTrainings } from '@/app/lib/schema';
 import { validateTrainingData } from '@/app/lib/validators';
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
 
   try {
     const buffer = await file.arrayBuffer();
-    const workbook = read(buffer, { type: 'buffer' });
+    const workbook = readFile(buffer, { type: 'buffer' });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const jsonData = utils.sheet_to_json(sheet);
 
