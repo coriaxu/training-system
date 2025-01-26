@@ -1,10 +1,10 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
-  "/api/init-db/route": "app/api/init-db/route.js",
-  "/report/page": "app/report/page.js",
-  "/api/insights/route": "app/api/insights/route.js",
   "/api/upload-history/route": "app/api/upload-history/route.js",
+  "/api/insights/route": "app/api/insights/route.js",
+  "/api/init-db/route": "app/api/init-db/route.js",
+  "/budget/page": "app/budget/page.js",
   "/page": "app/page.js",
   "/test/page": "app/test/page.js",
-  "/budget/page": "app/budget/page.js"
+  "/report/page": "app/report/page.js"
 }

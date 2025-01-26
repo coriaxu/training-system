@@ -22,11 +22,14 @@ export async function POST(request: Request) {
     const validationResult = await validateTrainingData(jsonData);
     
     if (!validationResult.success) {
-      return NextResponse.json({ error: validationResult.error }, { status: 400 });
+      return NextResponse.json({ 
+        error: '数据验证失败', 
+        details: validationResult.errors 
+      }, { status: 400 });
     }
 
     // 保存到数据库
-    const values = validationResult.data.map(record => ({
+    const values = validationResult.validData.map(record => ({
       year: record.year,
       courseName: record.courseName,
       participants: record.participants,
