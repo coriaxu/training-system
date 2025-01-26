@@ -30,3 +30,9 @@ export interface ExpenseFormData {
   courseType: string;
   description: string;
 }
+
+// 预算数据库记录
+export interface BudgetData extends Budget {
+  month: string;  // 预算月份 YYYY-MM
+  notes?: string; // 备注信息
+}
