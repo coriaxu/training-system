@@ -1,100 +1,161 @@
+'use client';
+
 import { useState } from 'react';
-import { ExpenseFormData, BudgetType } from '@/types/budget';
+import { BudgetFormData, CourseTypeBudget } from '@/types/budget';
+import { validateBudgetForm } from '@/lib/validation';
 
 interface ExpenseFormProps {
-  onSubmit: (data: ExpenseFormData) => void;
-  onClose: () => void;
+  onSubmit: (data: BudgetFormData) => Promise<boolean>;
 }
 
-export default function ExpenseForm({ onSubmit, onClose }: ExpenseFormProps) {
-  const [formData, setFormData] = useState<ExpenseFormData>({
-    date: new Date().toISOString().split('T')[0],
-    project: '',
-    amount: 0,
-    budgetType: '日常培训开销',
-    note: ''
+export default function ExpenseForm({ onSubmit }: ExpenseFormProps) {
+  const [formData, setFormData] = useState<BudgetFormData>({
+    month: new Date().toISOString().slice(0, 7),
+    totalBudget: 0,
+    courseTypeBudgets: [
+      { type: '日常培训', amount: 0 },
+      { type: '专项培训', amount: 0 },
+      { type: '特殊项目', amount: 0 }
+    ],
+    notes: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // 验证表单
+    const error = validateBudgetForm(formData);
+    if (error) {
+      alert(error);
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const success = await onSubmit(formData);
+      if (success) {
+        // 重置表单
+        setFormData({
+          month: new Date().toISOString().slice(0, 7),
+          totalBudget: 0,
+          courseTypeBudgets: [
+            { type: '日常培训', amount: 0 },
+            { type: '专项培训', amount: 0 },
+            { type: '特殊项目', amount: 0 }
+          ],
+          notes: ''
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCourseTypeAmountChange = (index: number, amount: number) => {
+    const newCourseTypeBudgets = [...formData.courseTypeBudgets];
+    newCourseTypeBudgets[index] = {
+      ...newCourseTypeBudgets[index],
+      amount
+    };
+    
+    // 更新总预算
+    const totalBudget = newCourseTypeBudgets.reduce((sum, item) => sum + item.amount, 0);
+    
+    setFormData({
+      ...formData,
+      courseTypeBudgets: newCourseTypeBudgets,
+      totalBudget
+    });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          日期
-        </label>
-        <input
-          type="date"
-          className="form-input"
-          value={formData.date}
-          onChange={e => setFormData({ ...formData, date: e.target.value })}
-          required
-        />
+    <form onSubmit={handleSubmit} className="card space-y-6">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-heading-2">设置预算</h2>
+        <div className="text-sm text-gray-500">
+          {new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' })}
+        </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          支出项目
-        </label>
-        <input
-          type="text"
-          className="form-input"
-          value={formData.project}
-          onChange={e => setFormData({ ...formData, project: e.target.value })}
-          required
-        />
+      <div className="space-y-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            预算月份
+          </label>
+          <input
+            type="month"
+            className="form-input"
+            value={formData.month}
+            onChange={e => setFormData({ ...formData, month: e.target.value })}
+            required
+          />
+        </div>
+
+        {formData.courseTypeBudgets.map((typeBudget, index) => (
+          <div key={index} className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              {typeBudget.type}预算
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">¥</span>
+              <input
+                type="number"
+                className="form-input pl-8"
+                value={typeBudget.amount}
+                onChange={e => handleCourseTypeAmountChange(index, Number(e.target.value))}
+                min="0"
+                step="0.01"
+                required
+              />
+            </div>
+          </div>
+        ))}
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            总预算
+          </label>
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">¥</span>
+            <input
+              type="number"
+              className="form-input pl-8 bg-gray-50 dark:bg-gray-700"
+              value={formData.totalBudget}
+              disabled
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            备注说明
+          </label>
+          <textarea
+            className="form-input h-24 resize-none"
+            value={formData.notes}
+            onChange={e => setFormData({ ...formData, notes: e.target.value })}
+            placeholder="添加预算相关说明..."
+          />
+        </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          支出金额
-        </label>
-        <input
-          type="number"
-          className="form-input"
-          value={formData.amount}
-          onChange={e => setFormData({ ...formData, amount: Number(e.target.value) })}
-          min="0"
-          step="0.01"
-          required
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          预算类型
-        </label>
-        <select
-          className="form-select"
-          value={formData.budgetType}
-          onChange={e => setFormData({ ...formData, budgetType: e.target.value as BudgetType })}
-          required
+      <div className="flex justify-end pt-4">
+        <button
+          type="submit"
+          className="btn-primary"
+          disabled={isSubmitting}
         >
-          <option value="日常培训开销">日常培训开销</option>
-          <option value="特殊项目开销">特殊项目开销</option>
-        </select>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          备注说明
-        </label>
-        <textarea
-          className="form-textarea"
-          value={formData.note}
-          onChange={e => setFormData({ ...formData, note: e.target.value })}
-        />
-      </div>
-
-      <div className="flex justify-end space-x-2">
-        <button type="button" className="btn-secondary" onClick={onClose}>
-          取消
-        </button>
-        <button type="submit" className="btn-primary">
-          确定
+          {isSubmitting ? (
+            <span className="flex items-center">
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              保存中...
+            </span>
+          ) : '保存预算'}
         </button>
       </div>
     </form>

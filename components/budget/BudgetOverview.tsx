@@ -4,7 +4,7 @@ import { Budget } from '@/types/budget';
 import { useEffect, useState } from 'react';
 
 interface BudgetOverviewProps {
-  budget: Budget | undefined; // 修改类型定义，允许 budget prop 为 undefined
+  budget: Budget | null;
 }
 
 export default function BudgetOverview({ budget }: BudgetOverviewProps) {
@@ -15,7 +15,7 @@ export default function BudgetOverview({ budget }: BudgetOverviewProps) {
   }, []);
 
   // 在服务端渲染时返回占位内容
-  if (typeof window === 'undefined' || !mounted) {
+  if (typeof window === 'undefined' || !mounted || !budget) {
     return (
       <div className="card animate-pulse">
         <div className="h-6 w-48 bg-gray-200 rounded mb-6"></div>
@@ -32,47 +32,69 @@ export default function BudgetOverview({ budget }: BudgetOverviewProps) {
     );
   }
 
-  // 检查 budget 是否存在，以及 total, used, remaining 属性是否存在
-  const total = budget?.total !== undefined ? budget.total : 0;
-  const used = budget?.used !== undefined ? budget.used : 0;
-  const remaining = budget?.remaining !== undefined ? budget.remaining : 0;
-  const warningThreshold = budget?.warningThreshold !== undefined ? budget.warningThreshold : 80; // 默认 warningThreshold
+  const totalBudget = budget.totalBudget;
+  const usedBudget = budget.courseTypeBudgets.reduce((sum, item) => sum + item.amount, 0);
+  const remainingBudget = totalBudget - usedBudget;
+  const warningThreshold = 80; // 默认警告阈值
 
-  const usagePercentage = (used / total) * 100;
+  const usagePercentage = (usedBudget / totalBudget) * 100;
   const isWarning = usagePercentage >= warningThreshold;
 
   return (
     <div className="card">
-      <h2 className="text-heading-2 mb-6">预算总览</h2>
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="stat-card">
-          <span className="stat-title">总预算</span>
-          <span className="stat-value">¥{total.toLocaleString('zh-CN')}</span>
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-heading-2">预算概览</h2>
+        <span className="text-sm text-gray-500">{budget.month}</span>
+      </div>
+
+      <div className="grid grid-cols-3 gap-8 mb-8">
+        <div className="space-y-2">
+          <span className="text-sm text-gray-500">总预算</span>
+          <div className="stat-value">
+            ¥{totalBudget.toLocaleString('zh-CN')}
+          </div>
+          <span className="text-xs text-gray-400">本月可用预算总额</span>
         </div>
-        <div className="stat-card">
-          <span className="stat-title">已使用</span>
-          <span className="stat-value text-primary">
-            ¥{used.toLocaleString('zh-CN')}
+        <div className="space-y-2">
+          <span className="text-sm text-gray-500">已分配</span>
+          <div className="stat-value">
+            ¥{usedBudget.toLocaleString('zh-CN')}
+          </div>
+          <span className="text-xs text-gray-400">
+            {((usedBudget / totalBudget) * 100).toFixed(1)}% 已规划
           </span>
         </div>
-        <div className="stat-card">
-          <span className="stat-title">剩余</span>
-          <span className="stat-value text-secondary">
-            ¥{remaining.toLocaleString('zh-CN')}
+        <div className="space-y-2">
+          <span className="text-sm text-gray-500">未分配</span>
+          <div className="stat-value">
+            ¥{remainingBudget.toLocaleString('zh-CN')}
+          </div>
+          <span className="text-xs text-gray-400">
+            {((remainingBudget / totalBudget) * 100).toFixed(1)}% 待规划
           </span>
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div className="progress-bar">
           <div
             className="progress-bar-fill"
             style={{ width: `${usagePercentage}%` }}
           />
         </div>
-        {isWarning && (
-          <p className="text-sm text-red-500">
-            警告：预算使用已超过{warningThreshold}%
+        {isWarning ? (
+          <p className="text-sm text-orange-500 flex items-center">
+            <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            预算使用接近上限，请注意控制支出
+          </p>
+        ) : (
+          <p className="text-sm text-green-500 flex items-center">
+            <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            预算使用情况良好，继续保持
           </p>
         )}
       </div>

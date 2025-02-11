@@ -1,5 +1,4 @@
-import { sql } from '@vercel/postgres';
-import { Budget } from '@/types/budget';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface BudgetData {
   id: string;
@@ -12,108 +11,98 @@ export interface BudgetData {
   notes?: string;
 }
 
-// 将数据库格式转换为前端格式
-function convertToBudget(data: BudgetData): Budget {
-  return {
-    total: data.totalBudget,
-    used: 0, // 这个值需要根据实际支出计算
-    remaining: data.totalBudget,
-    warningThreshold: 80,
-    courseTypeBudgets: data.courseTypeBudgets
-  };
+interface StorageData {
+  version: number;
+  data: BudgetData[];
+  timestamp: string;
 }
 
-// 保存预算数据
-export async function saveBudgetData(data: Omit<BudgetData, 'id'>): Promise<Budget> {
+const BUDGET_STORAGE_KEY = 'training_budgets_v1';
+const BUDGET_BACKUP_KEY = 'training_budgets_backup';
+
+export function saveBudgetData(data: Omit<BudgetData, 'id'>): BudgetData {
   try {
+    const budgets = getBudgetData();
+    const newBudget: BudgetData = {
+      ...data,
+      id: uuidv4(),
+    };
+
     // 检查是否已存在同月份的预算
-    const existingBudget = await sql`
-      SELECT * FROM budgets WHERE month = ${data.month}
-    `;
-
-    let result;
-    if (existingBudget.rows.length > 0) {
-      // 更新现有预算
-      result = await sql`
-        UPDATE budgets
-        SET 
-          total_budget = ${data.totalBudget},
-          course_type_budgets = ${JSON.stringify(data.courseTypeBudgets)},
-          notes = ${data.notes},
-          updated_at = CURRENT_TIMESTAMP
-        WHERE month = ${data.month}
-        RETURNING *
-      `;
+    const existingIndex = budgets.findIndex(b => b.month === data.month);
+    if (existingIndex >= 0) {
+      budgets[existingIndex] = newBudget;
     } else {
-      // 创建新预算
-      result = await sql`
-        INSERT INTO budgets (
-          month, 
-          total_budget, 
-          course_type_budgets,
-          notes
-        ) VALUES (
-          ${data.month},
-          ${data.totalBudget},
-          ${JSON.stringify(data.courseTypeBudgets)},
-          ${data.notes}
-        )
-        RETURNING *
-      `;
+      budgets.push(newBudget);
     }
 
-    const savedData = result.rows[0];
-    return convertToBudget({
-      id: savedData.id,
-      month: savedData.month,
-      totalBudget: savedData.total_budget,
-      courseTypeBudgets: savedData.course_type_budgets,
-      notes: savedData.notes
-    });
+    // 添加版本控制和时间戳
+    const storageData: StorageData = {
+      version: 1,
+      data: budgets,
+      timestamp: new Date().toISOString()
+    };
+
+    localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(storageData));
+    backupBudgetData(storageData); // 自动备份
+    console.log('预算数据保存成功：', newBudget);
+    return newBudget;
   } catch (error) {
-    console.error('Error saving budget data:', error);
+    console.error('保存预算数据失败：', error);
     throw error;
   }
 }
 
-// 获取所有预算数据
-export async function getBudgetData(): Promise<Budget[]> {
+export function getBudgetData(): BudgetData[] {
   try {
-    const result = await sql`SELECT * FROM budgets ORDER BY month DESC`;
-    return result.rows.map(row => convertToBudget({
-      id: row.id,
-      month: row.month,
-      totalBudget: row.total_budget,
-      courseTypeBudgets: row.course_type_budgets,
-      notes: row.notes
-    }));
+    const rawData = localStorage.getItem(BUDGET_STORAGE_KEY);
+    if (!rawData) return [];
+
+    const parsedData = JSON.parse(rawData);
+    
+    // 处理不同版本的数据格式
+    if (Array.isArray(parsedData)) {
+      // 旧版本数据，自动升级
+      const storageData: StorageData = {
+        version: 1,
+        data: parsedData,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(storageData));
+      return parsedData;
+    }
+    
+    return parsedData.data || [];
   } catch (error) {
-    console.error('Error getting budget data:', error);
-    throw error;
+    console.error('读取预算数据失败：', error);
+    const backup = restoreBudgetData(); // 尝试从备份恢复
+    return backup || [];
   }
 }
 
-// 根据月份获取预算
-export async function getBudgetByMonth(month: string): Promise<Budget | null> {
+export function getBudgetByMonth(month: string): BudgetData | null {
+  const budgets = getBudgetData();
+  return budgets.find(b => b.month === month) || null;
+}
+
+function backupBudgetData(data: StorageData): void {
   try {
-    const result = await sql`
-      SELECT * FROM budgets WHERE month = ${month}
-    `;
-
-    if (result.rows.length === 0) {
-      return null;
-    }
-
-    const row = result.rows[0];
-    return convertToBudget({
-      id: row.id,
-      month: row.month,
-      totalBudget: row.total_budget,
-      courseTypeBudgets: row.course_type_budgets,
-      notes: row.notes
-    });
+    localStorage.setItem(BUDGET_BACKUP_KEY, JSON.stringify(data));
+    console.log('备份数据已创建');
   } catch (error) {
-    console.error('Error getting budget by month:', error);
-    throw error;
+    console.error('备份数据失败：', error);
+  }
+}
+
+function restoreBudgetData(): BudgetData[] | null {
+  try {
+    const backup = localStorage.getItem(BUDGET_BACKUP_KEY);
+    if (!backup) return null;
+
+    const parsedBackup = JSON.parse(backup);
+    return parsedBackup.data || null;
+  } catch (error) {
+    console.error('恢复备份数据失败：', error);
+    return null;
   }
 }

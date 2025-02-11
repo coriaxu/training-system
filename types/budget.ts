@@ -1,32 +1,36 @@
+// 预算类型
 export interface Budget {
-  total: number;
-  used: number;
-  remaining: number;
-  warningThreshold: number;
-  courseTypeBudgets: {
-    type: BudgetType; // 修改为 BudgetType，保持类型一致
-    amount: number;
-  }[];
+  id: string;
+  month: string;
+  totalBudget: number;
+  courseTypeBudgets: CourseTypeBudget[];
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export type BudgetType = '日常培训开销' | '特殊项目开销' | '差旅费用';
+// 课程类型预算
+export interface CourseTypeBudget {
+  type: '日常培训' | '专项培训' | '特殊项目';
+  amount: number;
+}
 
+// 支出记录
 export interface Expense {
   id: string;
   date: string;
   project: string;
   amount: number;
-  budgetType: BudgetType; //  精简：只保留 budgetType，如果 type 还有其他用途，请补充说明
+  type: '日常培训' | '专项培训' | '特殊项目';
   note?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-
-export interface ExpenseFormData {
-  date: string;
-  project: string;
-  amount: number;
-  budgetType: BudgetType; // 使用 BudgetType
-  note?: string;
-}
+// 表单数据类型
+export interface BudgetFormData {
+  month: string;
+  totalBudget: number;
+  courseTypeBudgets: CourseTypeBudget[];
+  notes?: string;
+} 

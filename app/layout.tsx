@@ -1,6 +1,9 @@
 import './globals.css';
+import { Inter } from 'next/font/google';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
   title: '学习发展培训运营后台系统',
@@ -14,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN">
-      <body className="font-sans">
+      <body className={inter.className}>
         <div className="min-h-screen bg-background">
           {/* 侧边栏 */}
           <Sidebar />

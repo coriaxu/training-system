@@ -4,7 +4,7 @@
   "description": "Surfin Learning Development Training Management System",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 8080 -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

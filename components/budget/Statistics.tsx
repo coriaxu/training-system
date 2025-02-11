@@ -31,7 +31,7 @@ export default function Statistics({ expenses }: StatisticsProps) {
 
   // 按类型统计支出
   const typeData = expenses.reduce((acc, expense) => {
-    acc[expense.budgetType] = (acc[expense.budgetType] || 0) + expense.amount;
+    acc[expense.type] = (acc[expense.type] || 0) + expense.amount;
     return acc;
   }, {} as Record<string, number>);
 

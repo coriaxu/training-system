@@ -1,53 +1,47 @@
 import { NextResponse } from 'next/server';
-import { read, utils } from 'xlsx';
+import XLSX from 'xlsx';
 import { db } from '@/app/lib/db';
 import { historicalTrainings } from '@/app/lib/schema';
 import { validateTrainingData } from '@/app/lib/validators';
 
-export async function POST(request: Request) {
-  const formData = await request.formData();
+export async function POST(req: Request) {
+  const formData = await req.formData();
   const file = formData.get('file') as File;
 
-  if (!file) {
-    return NextResponse.json({ error: '请选择要上传的文件' }, { status: 400 });
+  if (!file || file.type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+    return NextResponse.json({ error: '仅支持.xlsx格式文件' }, { status: 400 });
   }
 
   try {
     const buffer = await file.arrayBuffer();
-    const workbook = read(new Uint8Array(buffer), { type: 'array' });
+    const workbook = XLSX.read(buffer, { type: 'buffer' });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const jsonData = utils.sheet_to_json(sheet);
+    const jsonData = XLSX.utils.sheet_to_json(sheet);
 
     // 数据验证
     const validationResult = await validateTrainingData(jsonData);
-    
     if (!validationResult.success) {
-      return NextResponse.json({ 
-        error: '数据验证失败', 
-        details: validationResult.errors 
-      }, { status: 400 });
+      return NextResponse.json(
+        { error: '数据验证失败', details: validationResult.errors },
+        { status: 422 }
+      );
     }
 
-    // 保存到数据库
-    const values = validationResult.validData.map(record => ({
-      year: record.year,
-      courseName: record.courseName,
-      participants: record.participants,
-      duration: record.duration,
-      department: record.department,
-      trainingDate: new Date(record.trainingDate),
-      cost: record.cost || 0
-    }));
-
-    await db.insert(historicalTrainings).values(values);
+    // 数据库存储
+    await db.transaction(async (tx) => {
+      await tx.insert(historicalTrainings).values(validationResult.validData);
+    });
 
     return NextResponse.json({ 
-      message: '培训历史记录上传成功',
-      count: values.length 
+      success: true,
+      insertedRows: validationResult.validData.length
     });
 
   } catch (error) {
-    console.error('处理培训历史记录失败:', error);
-    return NextResponse.json({ error: '处理文件时出错' }, { status: 500 });
+    console.error('数据处理失败:', error);
+    return NextResponse.json(
+      { error: '服务器内部错误，请稍后重试' },
+      { status: 500 }
+    );
   }
 }

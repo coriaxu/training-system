@@ -7,11 +7,9 @@ export const COURSE_TYPES = [
   '合规培训',
 ] as const;
 
-export type CourseType = typeof COURSE_TYPES[number];
-
 export interface TrainingRecord {
   id: string;
-  courseType: CourseType;
+  courseType: string;
   courseName: string;
   instructor: string;
   date: string;
@@ -31,7 +29,7 @@ interface KPIs {
 const TEST_DATA: TrainingRecord[] = [
   {
     id: '1',
-    courseType: '技术培训',
+    courseType: 'AI培训',
     courseName: '深度学习基础',
     instructor: '张教授',
     date: '2025-01-10',

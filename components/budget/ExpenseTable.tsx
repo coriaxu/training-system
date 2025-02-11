@@ -1,77 +1,55 @@
-import { Expense } from '@/types/budget';
-import { format } from 'date-fns';
-import { Edit2, Trash2 } from 'lucide-react';
+import { Budget } from '@/types/budget';
 
 interface ExpenseTableProps {
-  expenses: Expense[];
-  onEdit: (expense: Expense) => void;
-  onDelete: (id: string) => void;
+  budget: Budget | null;
 }
 
-export default function ExpenseTable({ expenses, onEdit, onDelete }: ExpenseTableProps) {
+export default function ExpenseTable({ budget }: ExpenseTableProps) {
+  if (!budget) {
+    return (
+      <div className="card animate-pulse">
+        <div className="h-6 w-48 bg-gray-200 rounded mb-6"></div>
+        <div className="h-40 bg-gray-200 rounded"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              日期
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              项目
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              金额
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              预算类型
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              备注
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              操作
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {expenses.map((expense) => (
-            <tr key={expense.id}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {format(new Date(expense.date), 'yyyy-MM-dd')}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {expense.project}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                ¥{expense.amount.toFixed(2)}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {expense.budgetType}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {expense.note || '-'}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => onEdit(expense)}
-                    className="text-blue-600 hover:text-blue-900"
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => onDelete(expense.id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              </td>
+    <div className="card">
+      <h2 className="text-heading-2 mb-6">预算分配明细</h2>
+      <div className="table-container">
+        <table className="table">
+          <thead>
+            <tr>
+              <th>课程类型</th>
+              <th>预算金额</th>
+              <th>占总预算比例</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {budget.courseTypeBudgets.map((typeBudget, index) => (
+              <tr key={index}>
+                <td>{typeBudget.type}</td>
+                <td>¥{typeBudget.amount.toLocaleString('zh-CN')}</td>
+                <td>
+                  {((typeBudget.amount / budget.totalBudget) * 100).toFixed(1)}%
+                </td>
+              </tr>
+            ))}
+            <tr className="font-bold">
+              <td>总计</td>
+              <td>¥{budget.totalBudget.toLocaleString('zh-CN')}</td>
+              <td>100%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      {budget.notes && (
+        <p className="text-sm text-gray-500 mt-4">
+          备注：{budget.notes}
+        </p>
+      )}
     </div>
   );
 }
