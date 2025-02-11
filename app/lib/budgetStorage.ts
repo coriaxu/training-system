@@ -20,8 +20,29 @@ interface StorageData {
 const BUDGET_STORAGE_KEY = 'training_budgets_v1';
 const BUDGET_BACKUP_KEY = 'training_budgets_backup';
 
+// 检查是否在浏览器环境
+const isBrowser = typeof window !== 'undefined';
+
+// 安全地访问 localStorage
+function getLocalStorage() {
+  if (!isBrowser) {
+    return null;
+  }
+  try {
+    return window.localStorage;
+  } catch (e) {
+    console.error('访问 localStorage 失败：', e);
+    return null;
+  }
+}
+
 export function saveBudgetData(data: Omit<BudgetData, 'id'>): BudgetData {
   try {
+    const storage = getLocalStorage();
+    if (!storage) {
+      throw new Error('localStorage 不可用');
+    }
+
     const budgets = getBudgetData();
     const newBudget: BudgetData = {
       ...data,
@@ -43,7 +64,7 @@ export function saveBudgetData(data: Omit<BudgetData, 'id'>): BudgetData {
       timestamp: new Date().toISOString()
     };
 
-    localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(storageData));
+    storage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(storageData));
     backupBudgetData(storageData); // 自动备份
     console.log('预算数据保存成功：', newBudget);
     return newBudget;
@@ -55,8 +76,17 @@ export function saveBudgetData(data: Omit<BudgetData, 'id'>): BudgetData {
 
 export function getBudgetData(): BudgetData[] {
   try {
-    const rawData = localStorage.getItem(BUDGET_STORAGE_KEY);
-    if (!rawData) return [];
+    const storage = getLocalStorage();
+    if (!storage) {
+      console.log('localStorage 不可用，返回空数组');
+      return [];
+    }
+
+    const rawData = storage.getItem(BUDGET_STORAGE_KEY);
+    if (!rawData) {
+      console.log('没有找到预算数据，返回空数组');
+      return [];
+    }
 
     const parsedData = JSON.parse(rawData);
     
@@ -68,7 +98,7 @@ export function getBudgetData(): BudgetData[] {
         data: parsedData,
         timestamp: new Date().toISOString()
       };
-      localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(storageData));
+      storage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(storageData));
       return parsedData;
     }
     
@@ -81,13 +111,22 @@ export function getBudgetData(): BudgetData[] {
 }
 
 export function getBudgetByMonth(month: string): BudgetData | null {
-  const budgets = getBudgetData();
-  return budgets.find(b => b.month === month) || null;
+  try {
+    const budgets = getBudgetData();
+    return budgets.find(b => b.month === month) || null;
+  } catch (error) {
+    console.error('按月份获取预算失败：', error);
+    return null;
+  }
 }
 
 function backupBudgetData(data: StorageData): void {
   try {
-    localStorage.setItem(BUDGET_BACKUP_KEY, JSON.stringify(data));
+    const storage = getLocalStorage();
+    if (!storage) {
+      throw new Error('localStorage 不可用');
+    }
+    storage.setItem(BUDGET_BACKUP_KEY, JSON.stringify(data));
     console.log('备份数据已创建');
   } catch (error) {
     console.error('备份数据失败：', error);
@@ -96,7 +135,11 @@ function backupBudgetData(data: StorageData): void {
 
 function restoreBudgetData(): BudgetData[] | null {
   try {
-    const backup = localStorage.getItem(BUDGET_BACKUP_KEY);
+    const storage = getLocalStorage();
+    if (!storage) {
+      throw new Error('localStorage 不可用');
+    }
+    const backup = storage.getItem(BUDGET_BACKUP_KEY);
     if (!backup) return null;
 
     const parsedBackup = JSON.parse(backup);
