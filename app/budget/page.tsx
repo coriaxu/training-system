@@ -15,35 +15,39 @@ export default function BudgetPage() {
   const [error, setError] = useState<string | null>(null);
 
   // 加载预算数据
+  const loadBudgetData = () => {
+    try {
+      setLoading(true);
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      const budgetData = getBudgetByMonth(currentMonth);
+      console.log('加载预算数据：', budgetData);
+      setBudget(budgetData);
+      setError(null);
+    } catch (err) {
+      console.error('加载预算数据失败：', err);
+      setError('加载预算数据失败，请刷新页面重试');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 初始加载和数据变更监听
   useEffect(() => {
-    const loadBudgetData = () => {
-      try {
-        setLoading(true);
-        const currentMonth = new Date().toISOString().slice(0, 7);
-        const budgetData = getBudgetByMonth(currentMonth);
-        console.log('加载预算数据：', budgetData);
-        setBudget(budgetData);
-        setError(null);
-      } catch (err) {
-        console.error('加载预算数据失败：', err);
-        setError('加载预算数据失败，请刷新页面重试');
-      } finally {
-        setLoading(false);
-      }
-    };
+    // 确保在客户端环境下执行
+    if (typeof window !== 'undefined') {
+      loadBudgetData();
 
-    loadBudgetData();
+      // 监听其他标签页的数据变更
+      const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === BUDGET_STORAGE_KEY) {
+          console.log('检测到数据变更，重新加载');
+          loadBudgetData();
+        }
+      };
 
-    // 监听其他标签页的数据变更
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === BUDGET_STORAGE_KEY) {
-        console.log('检测到数据变更，重新加载');
-        loadBudgetData();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+      window.addEventListener('storage', handleStorageChange);
+      return () => window.removeEventListener('storage', handleStorageChange);
+    }
   }, []);
 
   // 保存预算数据
@@ -52,6 +56,8 @@ export default function BudgetPage() {
       const savedBudget = saveBudgetData(data);
       console.log('保存预算成功：', savedBudget);
       setBudget(savedBudget);
+      // 手动触发重新加载，确保数据更新
+      loadBudgetData();
       return true;
     } catch (err) {
       console.error('保存预算失败：', err);
@@ -85,7 +91,10 @@ export default function BudgetPage() {
           <div className="text-red-600 text-center">
             <p className="text-lg font-medium">{error}</p>
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => {
+                setError(null);
+                loadBudgetData();
+              }}
               className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
             >
               重新加载
@@ -99,27 +108,9 @@ export default function BudgetPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="space-y-8">
-        {/* 标题和操作区 */}
-        <div className="flex justify-between items-center">
-          <h1 className="text-heading-1">培训预算管理</h1>
-          <div className="space-x-4">
-            <button 
-              className="btn-primary"
-              onClick={() => window.location.reload()}
-            >
-              刷新数据
-            </button>
-          </div>
-        </div>
-
-        {/* 预算总览 */}
+        <ExpenseForm onSave={handleSaveBudget} initialBudget={budget} />
         <BudgetOverview budget={budget} />
-
-        {/* 预算表单和明细 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <ExpenseForm onSubmit={handleSaveBudget} />
-          <ExpenseTable budget={budget} />
-        </div>
+        <ExpenseTable budget={budget} />
       </div>
     </div>
   );
