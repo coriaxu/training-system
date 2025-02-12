@@ -1,13 +1,13 @@
 import './globals.css';
 import { Inter } from 'next/font/google';
-import { Sidebar } from './components/layout/Sidebar';
-import { Header } from './components/layout/Header';
+import { Sidebar } from '@/app/components/layout/Sidebar';
+import { Header } from '@/app/components/layout/Header';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: '学习发展培训运营后台系统',
-  description: '一个集成的培训运营管理平台，提供全面、高效、便捷的培训管理工具',
+  title: '培训预算系统',
+  description: '管理培训预算和支出的系统',
 };
 
 export default function RootLayout({
@@ -16,22 +16,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-CN">
+    <html lang="zh">
       <body className={inter.className}>
-        <div className="min-h-screen bg-background">
-          {/* 侧边栏 */}
-          <Sidebar />
-          
-          {/* 主内容区域 - 使用 padding 避免布局冲突 */}
-          <div className="pl-64">
-            {/* 顶部导航 */}
+        <div className="flex h-screen">
+          <aside className="w-64 flex-shrink-0">
+            <Sidebar />
+          </aside>
+          <main className="flex flex-1 flex-col">
             <Header />
-            
-            {/* 内容区域 */}
-            <main className="p-6 mt-16">
+            <div className="flex-1 bg-gray-50 p-6">
               {children}
-            </main>
-          </div>
+            </div>
+          </main>
         </div>
       </body>
     </html>

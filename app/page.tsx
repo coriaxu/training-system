@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, Clock, Calendar, UserCheck, Timer } from 'lucide-react';
+import { Users, Clock, Calendar, UserCheck } from 'lucide-react';
 import { StatCard } from './components/StatCard';
 import { TrainingForm } from './components/TrainingForm';
 import { TrainingTable } from './components/TrainingTable';
@@ -56,97 +56,85 @@ export default function Home() {
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  // 导出数据到Excel
+  // 导出数据到 Excel
   const handleExport = () => {
     exportToExcel(records);
-    showToastMessage('数据已成功导出到Excel文件！');
+    showToastMessage('数据已成功导出到 Excel！');
   };
 
   return (
     <div className="space-y-6">
-      {/* 页面标题和操作按钮 */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-800">培训数据管理</h2>
-        <div className="flex items-center space-x-4">
-          <button
-            className="btn-primary"
-            onClick={() => setIsFormOpen(true)}
-          >
-            添加培训记录
-          </button>
-          <button
-            className="btn-secondary"
-            onClick={handleExport}
-          >
-            导出到Excel
-          </button>
-        </div>
-      </div>
-
       {/* 统计卡片 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="总培训场次"
+          title="总培训次数"
           value={kpis.totalSessions}
-          icon={<Calendar className="w-6 h-6" />}
-          description="所有已完成的培训总数"
+          icon={Calendar}
         />
         <StatCard
-          title="总参训人数"
+          title="总参与人次"
           value={kpis.totalParticipants}
-          icon={<Users className="w-6 h-6" />}
-          description="累计参加培训的人数"
+          icon={Users}
         />
         <StatCard
           title="总培训时长"
-          value={`${kpis.totalDuration}小时`}
-          icon={<Clock className="w-6 h-6" />}
-          description="累计培训总时长"
+          value={`${kpis.totalDuration}h`}
+          icon={Clock}
         />
         <StatCard
-          title="总培训人时"
-          value={`${kpis.totalParticipantHours}小时`}
-          icon={<Timer className="w-6 h-6" />}
-          description="参训人数×培训时长的总和"
+          title="培训总人时"
+          value={`${kpis.totalManHours}h`}
+          icon={UserCheck}
         />
       </div>
 
       {/* 图表区域 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="card">
-          <h3 className="text-heading-4 mb-4">参训人数趋势</h3>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="rounded-lg bg-white p-4 shadow">
           <ParticipantsTrend data={records} />
         </div>
-        <div className="card">
-          <h3 className="text-heading-4 mb-4">培训时长统计</h3>
+        <div className="rounded-lg bg-white p-4 shadow">
           <DurationStats data={records} />
         </div>
-        <div className="card">
-          <h3 className="text-heading-4 mb-4">课程类型分布</h3>
+        <div className="rounded-lg bg-white p-4 shadow">
           <CourseTypeDistribution data={records} />
+        </div>
+        <div className="rounded-lg bg-white p-4 shadow">
+          <AIInsights data={records} />
         </div>
       </div>
 
-      {/* AI 洞察 */}
-      <AIInsights data={records} />
-
       {/* 培训记录表格 */}
-      <div className="card">
-        <h3 className="text-heading-4 mb-4">培训记录</h3>
-        <TrainingTable data={records} onDelete={handleDeleteRecord} />
+      <div className="rounded-lg bg-white p-4 shadow">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="space-x-2">
+            <button
+              onClick={() => setIsFormOpen(true)}
+              className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+            >
+              添加培训记录
+            </button>
+            <button
+              onClick={handleExport}
+              className="rounded border border-gray-300 px-4 py-2 hover:bg-gray-50"
+            >
+              导出到Excel
+            </button>
+          </div>
+        </div>
+        <TrainingTable records={records} onDelete={handleDeleteRecord} />
       </div>
 
       {/* 添加培训记录表单 */}
-      {isFormOpen && (
-        <TrainingForm
-          onClose={() => setIsFormOpen(false)}
-          onSubmit={handleAddRecord}
-        />
-      )}
+      <TrainingForm
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSubmit={handleAddRecord}
+      />
 
       {/* 提示消息 */}
       {showToast && (
-        <div className="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg">
+        <div className="fixed bottom-4 right-4 rounded-lg bg-green-500 px-4 py-2 text-white shadow-lg">
           {toastMessage}
         </div>
       )}

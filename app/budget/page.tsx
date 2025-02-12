@@ -1,29 +1,53 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import BudgetOverview from '@/components/budget/BudgetOverview';
-import ExpenseForm from '@/components/budget/ExpenseForm';
-import ExpenseTable from '@/components/budget/ExpenseTable';
-import { Budget, BudgetFormData } from '@/types/budget';
+import { useState, useEffect, useCallback } from 'react';
+import { Budget } from '@/types/budget';
+import BudgetCards from '@/app/components/budget/BudgetCards';
+import BudgetCharts from '@/app/components/budget/BudgetCharts';
+import ExpenseList from '@/app/components/budget/ExpenseList';
+import ExpenseDialog from '@/app/components/budget/ExpenseDialog';
+
+interface Expense {
+  id: string;
+  type: string;
+  amount: number;
+  description: string;
+  date: string;
+}
 
 export default function BudgetPage() {
   const [budget, setBudget] = useState<Budget | null>(null);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
+  const [expensesByType, setExpensesByType] = useState<Record<string, number>>({});
+  const [totalExpense, setTotalExpense] = useState(0);
 
-  // 加载预算数据
-  const loadBudgetData = async () => {
+  // 加载预算和支出数据
+  const loadData = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/budget');
-      if (!res.ok) throw new Error('获取预算数据失败');
-      const budgetData = await res.json();
-      console.log('加载预算数据：', budgetData);
+      const [budgetRes, expenseRes] = await Promise.all([
+        fetch('/api/budget'),
+        fetch('/api/expense'),
+      ]);
+
+      if (!budgetRes.ok) throw new Error('获取预算数据失败');
+      if (!expenseRes.ok) throw new Error('获取支出数据失败');
+
+      const [budgetData, expenseData] = await Promise.all([
+        budgetRes.json(),
+        expenseRes.json(),
+      ]);
+
       setBudget(budgetData);
+      setExpenses(expenseData);
       setError(null);
     } catch (err) {
-      console.error('加载预算数据失败：', err);
-      setError('加载预算数据失败，请刷新页面重试');
+      console.error('加载数据失败：', err);
+      setError('加载数据失败，请刷新页面重试');
     } finally {
       setLoading(false);
     }
@@ -31,51 +55,131 @@ export default function BudgetPage() {
 
   // 初始加载
   useEffect(() => {
-    loadBudgetData();
+    loadData();
   }, []);
 
-  // 保存预算数据
-  const handleSaveBudget = async (data: BudgetFormData): Promise<boolean> => {
+  // 计算支出统计数据
+  const calculateExpenseStats = useCallback(() => {
+    const typeStats = expenses.reduce((acc, expense) => {
+      acc[expense.type] = (acc[expense.type] || 0) + (expense.amount || 0);
+      return acc;
+    }, {} as Record<string, number>);
+
+    const totalExpense = expenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
+    
+    return {
+      expensesByType: typeStats,
+      totalExpense
+    };
+  }, [expenses]);
+
+  // 当支出数据变化时重新计算统计数据
+  useEffect(() => {
+    const stats = calculateExpenseStats();
+    setExpensesByType(stats.expensesByType);
+    setTotalExpense(stats.totalExpense);
+  }, [expenses, calculateExpenseStats]);
+
+  // 添加支出
+  const handleAddExpense = async (data: any) => {
     try {
-      const res = await fetch('/api/budget', {
-        method: 'POST',
+      const res = await fetch('/api/expense', {
+        method: data.id ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
       });
 
-      if (!res.ok) throw new Error('保存预算失败');
-      const savedBudget = await res.json();
-      console.log('保存预算成功：', savedBudget);
-      setBudget(savedBudget);
-      return true;
+      if (!res.ok) throw new Error(data.id ? '更新支出失败' : '添加支出失败');
+
+      const newExpense = await res.json();
+      
+      // 更新本地状态
+      if (data.id) {
+        setExpenses(prevExpenses => 
+          prevExpenses.map(e => e.id === data.id ? newExpense : e)
+        );
+      } else {
+        setExpenses(prevExpenses => [...prevExpenses, newExpense]);
+      }
+
+      setIsExpenseDialogOpen(false);
+      setSelectedExpense(null);
     } catch (err) {
-      console.error('保存预算失败：', err);
-      setError('保存预算失败，请重试');
-      return false;
+      console.error('保存支出失败：', err);
+      alert('保存支出失败，请重试');
+    }
+  };
+
+  // 处理编辑支出
+  const handleEditExpense = (expense: Expense) => {
+    setSelectedExpense(expense);
+    setIsExpenseDialogOpen(true);
+  };
+
+  // 处理删除支出
+  const handleDeleteExpense = async (id: string) => {
+    try {
+      const expenseToDelete = expenses.find(e => e.id === id);
+      if (!expenseToDelete) return;
+
+      const res = await fetch(`/api/expense/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) throw new Error('删除支出失败');
+      
+      // 更新本地状态
+      setExpenses(prevExpenses => prevExpenses.filter(e => e.id !== id));
+      
+      // 状态会通过 useEffect 自动更新
+    } catch (err) {
+      console.error('删除支出失败：', err);
+      alert('删除支出失败，请重试');
     }
   };
 
   if (loading) {
-    return <div className="p-4">加载中...</div>;
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-lg">加载中...</div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="p-4 text-red-500">{error}</div>;
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-lg text-red-500">{error}</div>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="space-y-8">
-        <ExpenseForm onSave={handleSaveBudget} budget={budget} />
-        {budget && (
-          <>
-            <BudgetOverview budget={budget} />
-            <ExpenseTable budget={budget} />
-          </>
-        )}
-      </div>
+    <div className="w-full max-w-[95%] mx-auto py-8">
+      {budget && (
+        <>
+          <BudgetCards budget={budget} expenses={expenses} />
+          <BudgetCharts budget={budget} expensesByType={expensesByType} />
+          <ExpenseList 
+            expenses={expenses} 
+            onAddExpense={() => setIsExpenseDialogOpen(true)}
+            onEdit={handleEditExpense}
+            onDelete={handleDeleteExpense}
+          />
+          <ExpenseDialog
+            isOpen={isExpenseDialogOpen}
+            onClose={() => {
+              setIsExpenseDialogOpen(false);
+              setSelectedExpense(null);
+            }}
+            onSubmit={handleAddExpense}
+            expense={selectedExpense}
+            budget={budget}
+          />
+        </>
+      )}
     </div>
   );
 }

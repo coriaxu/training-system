@@ -1,30 +1,35 @@
 'use client';
 
-export function Header() {
-  return (
-    <header className="h-16 bg-white border-b border-gray-200 fixed top-0 left-64 right-0 z-10">
-      <div className="h-full flex items-center">
-        {/* 精准间距控制容器 */}
-        <div className="pl-[28px]">
-          <h2 
-            className="text-xl font-semibold" 
-            style={{ 
-              color: '#0F4264',
-              position: 'relative',
-              left: '-4px'
-            }}
-          >
-            学习发展培训运营后台系统
-          </h2>
-        </div>
+import { UserCircleIcon } from '@heroicons/react/24/outline';
+import { usePathname } from 'next/navigation';
 
-        {/* 用户区域占位 */}
-        <div className="flex-1"></div>
-        
-        {/* 用户信息容器 */}
-        <div className="pr-6 flex items-center space-x-4">
-          {/* 预留区域 */}
-        </div>
+export function Header() {
+  const pathname = usePathname();
+
+  const getTitle = () => {
+    switch (pathname) {
+      case '/':
+        return '培训数据管理';
+      case '/budget':
+        return '预算管理';
+      case '/training':
+        return '培训记录';
+      case '/reports':
+        return '统计报表';
+      default:
+        return '培训数据管理';
+    }
+  };
+
+  return (
+    <header className="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6">
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900">{getTitle()}</h2>
+      </div>
+      <div className="flex items-center">
+        <button className="flex items-center rounded-full bg-gray-100 p-2 hover:bg-gray-200">
+          <UserCircleIcon className="h-6 w-6 text-gray-600" />
+        </button>
       </div>
     </header>
   );
