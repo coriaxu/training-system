@@ -5,19 +5,20 @@ import { BudgetFormData, CourseTypeBudget } from '@/types/budget';
 import { validateBudgetForm } from '@/lib/validation';
 
 interface ExpenseFormProps {
-  onSubmit: (data: BudgetFormData) => Promise<boolean>;
+  onSave: (data: BudgetFormData) => Promise<boolean>;
+  budget: BudgetFormData | null;
 }
 
-export default function ExpenseForm({ onSubmit }: ExpenseFormProps) {
+export default function ExpenseForm({ onSave, budget }: ExpenseFormProps) {
   const [formData, setFormData] = useState<BudgetFormData>({
     month: new Date().toISOString().slice(0, 7),
-    totalBudget: 0,
-    courseTypeBudgets: [
+    totalBudget: budget?.totalBudget || 0,
+    courseTypeBudgets: budget?.courseTypeBudgets || [
       { type: '日常培训', amount: 0 },
       { type: '专项培训', amount: 0 },
       { type: '特殊项目', amount: 0 }
     ],
-    notes: ''
+    notes: budget?.notes || ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,7 +35,7 @@ export default function ExpenseForm({ onSubmit }: ExpenseFormProps) {
 
     try {
       setIsSubmitting(true);
-      const success = await onSubmit(formData);
+      const success = await onSave(formData);
       if (success) {
         // 重置表单
         setFormData({
