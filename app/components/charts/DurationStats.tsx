@@ -10,7 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { TrainingRecord } from '../../lib/storage';
+import { TrainingRecord } from '../../../lib/storage';
 
 interface DurationStatsProps {
   data: TrainingRecord[];

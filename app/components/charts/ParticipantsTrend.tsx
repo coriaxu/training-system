@@ -8,7 +8,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { TrainingRecord } from '@/app/lib/storage';
+import { TrainingRecord } from '../../lib/storage';
 
 interface ParticipantsTrendProps {
   data: TrainingRecord[];
