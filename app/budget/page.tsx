@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Budget } from '@/types/budget';
+import { Budget, Expense } from '@/types/budget';
 import BudgetCards from '@/app/components/budget/BudgetCards';
 import BudgetCharts from '@/app/components/budget/BudgetCharts';
 import ExpenseList from '@/app/components/budget/ExpenseList';
@@ -16,7 +16,12 @@ interface Expense {
 }
 
 export default function BudgetPage() {
-  const [budget, setBudget] = useState<Budget | null>(null);
+  const [budget, setBudget] = useState<Budget>({
+    id: '',
+    totalBudget: 0,
+    notes: '',
+    courseTypeBudgets: [],
+  });
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -140,6 +145,38 @@ export default function BudgetPage() {
     }
   };
 
+  // 更新预算
+  const handleUpdateBudget = async (updatedBudget: Budget) => {
+    try {
+      const response = await fetch(`/api/budget/${budget.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedBudget),
+      });
+
+      if (!response.ok) throw new Error('更新预算失败');
+      await loadData(); // 重新获取预算数据
+    } catch (error) {
+      console.error('更新预算失败:', error);
+    }
+  };
+
+  // 删除预算
+  const handleDeleteBudget = async (id: string) => {
+    try {
+      const response = await fetch(`/api/budget/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('删除预算失败');
+      await loadData(); // 重新获取预算数据
+    } catch (error) {
+      console.error('删除预算失败:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -160,7 +197,12 @@ export default function BudgetPage() {
     <div className="w-full max-w-[95%] mx-auto py-8">
       {budget && (
         <>
-          <BudgetCards budget={budget} expenses={expenses} />
+          <BudgetCards
+            budget={budget}
+            expenses={expenses}
+            onUpdate={handleUpdateBudget}
+            onDelete={handleDeleteBudget}
+          />
           <BudgetCharts budget={budget} expensesByType={expensesByType} />
           <ExpenseList 
             expenses={expenses} 

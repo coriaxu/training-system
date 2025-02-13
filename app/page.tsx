@@ -13,6 +13,7 @@ import {
   getTrainingRecords,
   saveTrainingRecord,
   deleteTrainingRecord,
+  updateTrainingRecord,
   calculateKPIs,
   type TrainingRecord,
 } from './lib/storage';
@@ -23,6 +24,7 @@ export default function Home() {
   const [records, setRecords] = useState<TrainingRecord[]>([]);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [editingRecord, setEditingRecord] = useState<TrainingRecord | null>(null);
 
   // 从 localStorage 加载数据
   useEffect(() => {
@@ -38,6 +40,31 @@ export default function Home() {
     const newRecord = saveTrainingRecord(data);
     setRecords([...records, newRecord]);
     showToastMessage('培训记录已成功添加！');
+    setIsFormOpen(false);
+  };
+
+  // 处理编辑培训记录
+  const handleEditRecord = (record: TrainingRecord) => {
+    setEditingRecord(record);
+    setIsFormOpen(true);
+  };
+
+  // 处理更新培训记录
+  const handleUpdateRecord = (data: Omit<TrainingRecord, 'id'>) => {
+    if (!editingRecord) return;
+    
+    const updatedRecord = updateTrainingRecord({
+      ...data,
+      id: editingRecord.id
+    });
+
+    setRecords(records.map(record => 
+      record.id === editingRecord.id ? updatedRecord : record
+    ));
+    
+    setEditingRecord(null);
+    setIsFormOpen(false);
+    showToastMessage('培训记录已成功更新！');
   };
 
   // 处理删除培训记录
@@ -60,6 +87,12 @@ export default function Home() {
   const handleExport = () => {
     exportToExcel(records);
     showToastMessage('数据已成功导出到 Excel！');
+  };
+
+  // 处理表单关闭
+  const handleFormClose = () => {
+    setIsFormOpen(false);
+    setEditingRecord(null);
   };
 
   return (
@@ -109,7 +142,10 @@ export default function Home() {
         <div className="mb-4 flex items-center justify-between">
           <div className="space-x-2">
             <button
-              onClick={() => setIsFormOpen(true)}
+              onClick={() => {
+                setEditingRecord(null);
+                setIsFormOpen(true);
+              }}
               className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
             >
               添加培训记录
@@ -122,14 +158,19 @@ export default function Home() {
             </button>
           </div>
         </div>
-        <TrainingTable records={records} onDelete={handleDeleteRecord} />
+        <TrainingTable 
+          records={records} 
+          onDelete={handleDeleteRecord}
+          onEdit={handleEditRecord}
+        />
       </div>
 
-      {/* 添加培训记录表单 */}
+      {/* 添加/编辑培训记录表单 */}
       <TrainingForm
         isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        onSubmit={handleAddRecord}
+        onClose={handleFormClose}
+        onSubmit={editingRecord ? handleUpdateRecord : handleAddRecord}
+        initialData={editingRecord}
       />
 
       {/* 提示消息 */}
