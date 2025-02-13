@@ -1,5 +1,4 @@
-'use client';
-
+import React from 'react';
 import {
   LineChart,
   Line,
@@ -9,27 +8,36 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { TrainingRecord } from '../../lib/storage';
+import { TrainingRecord } from '@/app/lib/storage';
 
 interface ParticipantsTrendProps {
   data: TrainingRecord[];
 }
 
 export function ParticipantsTrend({ data }: ParticipantsTrendProps) {
-  // 按日期对数据进行分组和聚合
-  const aggregatedData = data.reduce((acc, record) => {
-    const date = record.date.split('T')[0];
+  // 1. 先按日期分组
+  const groupedData = data.reduce((acc, record) => {
+    const dateStr = record.startDate;
+    if (!dateStr) return acc;
+
+    const date = dateStr.split('T')[0];
     if (!acc[date]) {
-      acc[date] = { date, participants: 0 };
+      acc[date] = { participants: 0, count: 0 };
     }
     acc[date].participants += record.participants;
+    acc[date].count += 1;
     return acc;
-  }, {} as Record<string, { date: string; participants: number }>);
+  }, {} as Record<string, { participants: number; count: number }>);
 
-  // 转换为数组并按日期排序
-  const chartData = Object.values(aggregatedData).sort((a, b) =>
-    a.date.localeCompare(b.date)
-  );
+  // 2. 把分组结果映射成一个数组，每个元素包含 date、participants、count 等字段
+  const chartData = Object.entries(groupedData)
+    .map(([date, values]) => ({
+      date, // "2025-01-10" 这样的字符串
+      participants: values.participants,
+      count: values.count,
+    }))
+    // 3. 直接用 date 排序
+    .sort((a, b) => a.date.localeCompare(b.date));
 
   return (
     <div style={{ width: '100%', height: '300px' }}>
@@ -39,8 +47,10 @@ export function ParticipantsTrend({ data }: ParticipantsTrendProps) {
           margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
+          {/* X轴直接用 chartData 里的 date 字段 */}
           <XAxis
             dataKey="date"
+            // 只显示月-日
             tickFormatter={(value) => value.split('-').slice(1).join('/')}
           />
           <YAxis />

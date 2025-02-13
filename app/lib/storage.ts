@@ -9,6 +9,7 @@ export interface TrainingRecord {
   duration: number;
   participants: number;
   satisfaction: number;
+  description?: string;
 }
 
 interface KPIs {
@@ -72,6 +73,17 @@ export function saveTrainingRecord(
   records.push(newRecord);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
   return newRecord;
+}
+
+// 更新培训记录
+export function updateTrainingRecord(data: TrainingRecord): TrainingRecord {
+  const records = getTrainingRecords();
+  const updatedRecords = records.map(record => 
+    record.id === data.id ? data : record
+  );
+  
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedRecords));
+  return data;
 }
 
 // 获取所有培训记录

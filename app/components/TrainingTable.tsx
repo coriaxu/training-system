@@ -1,14 +1,24 @@
 'use client';
 
 import { TrainingRecord } from '../lib/storage';
-import { Trash2 } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface TrainingTableProps {
   records: TrainingRecord[];
   onDelete: (id: string) => void;
+  onEdit: (record: TrainingRecord) => void;
 }
 
-export function TrainingTable({ records, onDelete }: TrainingTableProps) {
+export function TrainingTable({ records, onDelete, onEdit }: TrainingTableProps) {
+  const formatDate = (dateStr: string) => {
+    const dateObj = new Date(dateStr);
+    if (isNaN(dateObj.getTime())) {
+      console.error('Invalid date:', dateStr);
+      return '日期无效';
+    }
+    return format(dateObj, 'yyyy-MM-dd');
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full bg-white rounded-lg overflow-hidden">
@@ -30,9 +40,6 @@ export function TrainingTable({ records, onDelete }: TrainingTableProps) {
               参训人数
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              满意度
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               操作
             </th>
           </tr>
@@ -47,7 +54,7 @@ export function TrainingTable({ records, onDelete }: TrainingTableProps) {
                 {record.courseName}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {new Date(record.startDate).toLocaleDateString()}
+                {formatDate(record.startDate)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {record.duration}
@@ -55,16 +62,21 @@ export function TrainingTable({ records, onDelete }: TrainingTableProps) {
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {record.participants}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {record.satisfaction}%
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                <button
-                  onClick={() => onDelete(record.id)}
-                  className="text-red-600 hover:text-red-900"
-                >
-                  <Trash2 className="h-5 w-5" />
-                </button>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => onEdit(record)}
+                    className="bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 transition-colors duration-200 text-sm font-medium min-w-[64px]"
+                  >
+                    编辑
+                  </button>
+                  <button
+                    onClick={() => onDelete(record.id)}
+                    className="bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 transition-colors duration-200 text-sm font-medium min-w-[64px]"
+                  >
+                    删除
+                  </button>
+                </div>
               </td>
             </tr>
           ))}

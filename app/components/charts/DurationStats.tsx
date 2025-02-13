@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import {
   BarChart,
   Bar,
@@ -18,7 +19,10 @@ interface DurationStatsProps {
 export function DurationStats({ data }: DurationStatsProps) {
   // 按日期对数据进行分组和聚合
   const aggregatedData = data.reduce((acc, record) => {
-    const date = record.date.split('T')[0];
+    const dateStr = record.startDate;
+    if (!dateStr) return acc;
+    
+    const date = dateStr.split('T')[0];
     if (!acc[date]) {
       acc[date] = { date, duration: 0 };
     }
