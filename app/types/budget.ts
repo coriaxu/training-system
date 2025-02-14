@@ -27,8 +27,8 @@ export interface Expense {
 }
 
 export interface BudgetFormData {
-  id?: string;
-  month?: string;
+  id: string;
+  month: string;
   totalBudget: number;
   notes?: string;
   courseTypeBudgets: Array<{
