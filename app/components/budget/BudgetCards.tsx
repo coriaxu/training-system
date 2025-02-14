@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
-import { Budget } from '@/types/budget';
+import { Budget, BudgetFormData } from '@/types/budget';
 import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import BudgetDialog from '../budget/BudgetDialog';
 
 interface BudgetCardsProps {
-  budget: Budget;
+  budget: BudgetFormData;
   expenses: Array<{
     id: string;
     amount: number;
