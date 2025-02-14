@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Budget, Expense } from '@/types/budget';
+import type { Budget as BudgetType, Expense as ExpenseType, BudgetFormData } from '@/types/budget';
 import BudgetCards from '@/app/components/budget/BudgetCards';
 import BudgetCharts from '@/app/components/budget/BudgetCharts';
 import ExpenseList from '@/app/components/budget/ExpenseList';
@@ -15,18 +15,25 @@ interface Expense {
   date: string;
 }
 
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
 export default function BudgetPage() {
-  const [budget, setBudget] = useState<Budget>({
-    id: '',
+  // 修复：在初始化 budget 时补上 month 字段（默认值为空字符串）
+  const [budget, setBudget] = useState<BudgetFormData>({
+    month: '',
     totalBudget: 0,
     notes: '',
-    courseTypeBudgets: [],
+    courseTypeBudgets: []
   });
-  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [expenses, setExpenses] = useState<ExpenseType[]>([]);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
+  const [selectedExpense, setSelectedExpense] = useState<ExpenseType | null>(null);
   const [expensesByType, setExpensesByType] = useState<Record<string, number>>({});
   const [totalExpense, setTotalExpense] = useState(0);
 
@@ -118,7 +125,7 @@ export default function BudgetPage() {
   };
 
   // 处理编辑支出
-  const handleEditExpense = (expense: Expense) => {
+  const handleEditExpense = (expense: ExpenseType) => {
     setSelectedExpense(expense);
     setIsExpenseDialogOpen(true);
   };
@@ -146,7 +153,7 @@ export default function BudgetPage() {
   };
 
   // 更新预算
-  const handleUpdateBudget = async (updatedBudget: Budget) => {
+  const handleUpdateBudget = async (updatedBudget: BudgetType) => {
     try {
       const response = await fetch(`/api/budget/${budget.id}`, {
         method: 'PUT',

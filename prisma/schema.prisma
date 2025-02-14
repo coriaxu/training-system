@@ -7,7 +7,8 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url = env("POSTGRES_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
 // 预算模型
@@ -44,4 +45,18 @@ model Expense {
   date        DateTime // 支出日期
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// 培训记录
+model Training {
+  id            String   @id @default(uuid())
+  title         String   // 培训标题
+  type          String   // 培训类型
+  startDate     DateTime // 开始日期
+  duration      Int      // 时长（分钟）
+  participants  Int      // 参与人数
+  trainer       String   // 培训讲师
+  description   String?  // 培训描述
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
