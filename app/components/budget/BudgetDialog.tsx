@@ -2,40 +2,35 @@
 
 import { Fragment, useEffect, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { Budget } from '@/types/budget';
+import { Budget, BudgetFormData } from '@/types/budget';
 
 interface BudgetDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (budget: Budget) => void;
-  initialData?: Budget;
+  onSave: (budget: Budget) => Promise<void>;
+  budget: BudgetFormData;
 }
 
 export default function BudgetDialog({
   isOpen,
   onClose,
   onSave,
-  initialData,
+  budget,
 }: BudgetDialogProps) {
-  const [formData, setFormData] = useState<Budget>({
-    id: '',
-    year: new Date().getFullYear(),
-    month: new Date().getMonth() + 1,
-    amount: 0,
-    spent: 0,
-    remaining: 0,
+  const [formData, setFormData] = useState<BudgetFormData>({
+    month: budget.month || '',
+    totalBudget: budget.totalBudget || 0,
+    notes: budget.notes || '',
+    courseTypeBudgets: budget.courseTypeBudgets || []
   });
 
   useEffect(() => {
-    if (initialData) {
-      setFormData(initialData);
-    }
-  }, [initialData]);
+    setFormData(budget);
+  }, [budget]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
-    onClose();
+    onSave(formData).then(() => onClose());
   };
 
   return (
@@ -69,36 +64,19 @@ export default function BudgetDialog({
                   as="h3"
                   className="text-lg font-medium leading-6 text-gray-900"
                 >
-                  {initialData ? '编辑预算' : '添加预算'}
+                  {budget.id ? '编辑预算' : '添加预算'}
                 </Dialog.Title>
 
                 <form onSubmit={handleSubmit} className="mt-4 space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
-                      年份
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.year}
-                      onChange={(e) =>
-                        setFormData({ ...formData, year: parseInt(e.target.value) })
-                      }
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
                       月份
                     </label>
                     <input
-                      type="number"
-                      min="1"
-                      max="12"
+                      type="text"
                       value={formData.month}
                       onChange={(e) =>
-                        setFormData({ ...formData, month: parseInt(e.target.value) })
+                        setFormData({ ...formData, month: e.target.value })
                       }
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                       required
@@ -111,12 +89,26 @@ export default function BudgetDialog({
                     </label>
                     <input
                       type="number"
-                      value={formData.amount}
+                      value={formData.totalBudget}
                       onChange={(e) =>
-                        setFormData({ ...formData, amount: parseInt(e.target.value) })
+                        setFormData({ ...formData, totalBudget: parseInt(e.target.value) })
                       }
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                       required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      备注
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.notes}
+                      onChange={(e) =>
+                        setFormData({ ...formData, notes: e.target.value })
+                      }
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     />
                   </div>
 

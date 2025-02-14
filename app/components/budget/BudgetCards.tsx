@@ -155,7 +155,7 @@ export default function BudgetCards({
 
       {/* 预算编辑对话框 */}
       <BudgetDialog
-        open={editDialogOpen}
+        isOpen={editDialogOpen}
         onClose={() => setEditDialogOpen(false)}
         onSave={onUpdate}
         budget={budget}
