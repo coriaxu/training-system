@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Budget } from '@/types/budget';
 import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
-import BudgetDialog from './BudgetDialog';
+import BudgetDialog from '@/app/components/budget/BudgetDialog';
 
 interface BudgetCardsProps {
   budget: Budget;
