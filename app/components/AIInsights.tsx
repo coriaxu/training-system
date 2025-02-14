@@ -1,16 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { generateTrainingInsights } from '../utils/aiService';
+import { useCompletion } from 'ai/react';
 import { TrainingRecord } from '../lib/storage';
 import { Loader2, Lightbulb } from 'lucide-react';
-import { MarkdownRenderer } from './MarkdownRenderer';
+import MarkdownRenderer from './MarkdownRenderer';
 
 interface AIInsightsProps {
   data: TrainingRecord[];
 }
 
-export function AIInsights({ data }: AIInsightsProps) {
+export default function AIInsights({ data }: AIInsightsProps) {
   const [insights, setInsights] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
