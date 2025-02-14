@@ -153,7 +153,7 @@ export default function BudgetPage() {
   };
 
   // 更新预算
-  const handleUpdateBudget = async (updatedBudget: BudgetType) => {
+  const handleUpdateBudget = async (updatedBudget: BudgetFormData) => {
     // 使用类型断言，将 budget 当作 BudgetType 来处理，确保 id 存在
     const budgetId = (budget as BudgetType).id;
     if (!budgetId) {

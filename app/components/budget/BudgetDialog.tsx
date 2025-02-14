@@ -64,7 +64,7 @@ export default function BudgetDialog({
                   as="h3"
                   className="text-lg font-medium leading-6 text-gray-900"
                 >
-                  {budget.id ? '编辑预算' : '添加预算'}
+                  {(budget as Budget).id ? '编辑预算' : '添加预算'}
                 </Dialog.Title>
 
                 <form onSubmit={handleSubmit} className="mt-4 space-y-4">
