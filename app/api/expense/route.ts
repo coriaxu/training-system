@@ -61,7 +61,7 @@ export async function POST(request: Request) {
         type: data.type,
         amount: amount,
         date: date,
-        month: date.getMonth() + 1,  // 添加月份字段
+        month: String(date.getMonth() + 1),  // 将月份转换为字符串
         description: data.description || '',
       },
     });
