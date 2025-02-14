@@ -154,6 +154,10 @@ export default function BudgetPage() {
 
   // 更新预算
   const handleUpdateBudget = async (updatedBudget: BudgetType) => {
+    if (!budget.id) {
+      console.error('更新预算时缺少 budget.id');
+      return;
+    }
     try {
       const response = await fetch(`/api/budget/${budget.id}`, {
         method: 'PUT',
