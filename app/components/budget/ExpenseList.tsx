@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { Expense } from '@/types/budget';
@@ -32,14 +34,13 @@ export default function ExpenseList({ expenses, onAddExpense, onEdit, onDelete }
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">日期</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">课程类型</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">金额</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">描述</th>
               <th className="px-6 py-3 text-center text-sm font-medium text-gray-500">操作</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 bg-white">
             {expenses.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
+                <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">
                   暂无支出记录
                 </td>
               </tr>
@@ -57,9 +58,6 @@ export default function ExpenseList({ expenses, onAddExpense, onEdit, onDelete }
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     ¥{(expense.amount ?? 0).toLocaleString('zh-CN')}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {expense.description}
                   </td>
                   <td className="px-6 py-4 flex justify-center space-x-2">
                     {/* 编辑按钮 */}
@@ -99,12 +97,14 @@ export default function ExpenseList({ expenses, onAddExpense, onEdit, onDelete }
               </button>
               <button
                 onClick={() => {
-                  onDelete(confirmDeleteId);
-                  setConfirmDeleteId(null);
+                  if (confirmDeleteId) {
+                    onDelete(confirmDeleteId);
+                    setConfirmDeleteId(null);
+                  }
                 }}
                 className="px-4 py-2 text-white bg-red-500 rounded hover:bg-red-600 transition"
               >
-                确定删除
+                确定
               </button>
             </div>
           </div>
