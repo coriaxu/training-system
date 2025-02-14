@@ -1,13 +1,6 @@
 import { useState } from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
-
-interface Expense {
-  id: string;
-  type: string;
-  amount: number;
-  description: string;
-  date: string;
-}
+import { Expense } from '@/types/budget';
 
 interface ExpenseListProps {
   expenses: Expense[];
