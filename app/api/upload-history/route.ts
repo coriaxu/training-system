@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
     // 验证数据
-    const validationResult = validateTrainingData(jsonData);
+    const validationResult = await validateTrainingData(jsonData);
     if (validationResult.errors.length > 0) {
       return NextResponse.json({ 
         success: false, 
