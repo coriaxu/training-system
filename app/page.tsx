@@ -5,7 +5,7 @@ import { Users, Clock, Calendar, UserCheck } from 'lucide-react';
 import { StatCard } from './components/StatCard';
 import { TrainingForm } from './components/TrainingForm';
 import { TrainingTable } from './components/TrainingTable';
-import { AIInsights } from './components/AIInsights';
+import AIInsights from './components/AIInsights';
 import { ParticipantsTrend } from './components/charts/ParticipantsTrend';
 import { DurationStats } from './components/charts/DurationStats';
 import { CourseTypeDistribution } from './components/charts/CourseTypeDistribution';

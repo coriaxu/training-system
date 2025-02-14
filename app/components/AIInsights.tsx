@@ -11,22 +11,27 @@ interface AIInsightsProps {
 }
 
 export default function AIInsights({ data }: AIInsightsProps) {
-  const [insights, setInsights] = useState<string>('');
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleGenerateInsights = async () => {
-    setLoading(true);
-    setError(null);
+  const {
+    completion: insights,
+    complete,
+    isLoading: loading,
+  } = useCompletion({
+    api: '/api/generate',
+    onError: (err) => {
+      setError('生成洞察报告时出错，请稍后重试');
+      console.error('Error generating insights:', err);
+    },
+  });
 
+  const handleGenerateInsights = async () => {
+    setError(null);
     try {
-      const result = await generateTrainingInsights(data);
-      setInsights(result);
+      await complete(JSON.stringify(data));
     } catch (err) {
       setError('生成洞察报告时出错，请稍后重试');
       console.error('Error generating insights:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
