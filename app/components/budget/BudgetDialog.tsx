@@ -7,7 +7,7 @@ import { Budget, BudgetFormData } from '@/types/budget';
 interface BudgetDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (budget: Budget) => Promise<void>;
+  onSave: (budget: BudgetFormData) => Promise<void>;
   budget: BudgetFormData;
 }
 

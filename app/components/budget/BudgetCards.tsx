@@ -10,7 +10,7 @@ interface BudgetCardsProps {
     amount: number;
     type: string;
   }>;
-  onUpdate: (budget: Budget) => Promise<void>;
+  onUpdate: (budget: BudgetFormData) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
 }
 
