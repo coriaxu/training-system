@@ -22,7 +22,7 @@ interface ApiResponse<T> {
 }
 
 export default function BudgetPage() {
-  // 修复：在初始化 budget 时补上 month 字段（默认值为空字符串）
+  // 初始化 budget 时补上 month 字段（默认值为空字符串）
   const [budget, setBudget] = useState<BudgetFormData>({
     month: '',
     totalBudget: 0,
@@ -154,12 +154,14 @@ export default function BudgetPage() {
 
   // 更新预算
   const handleUpdateBudget = async (updatedBudget: BudgetType) => {
-    if (!budget.id) {
+    // 使用类型断言，将 budget 当作 BudgetType 来处理，确保 id 存在
+    const budgetId = (budget as BudgetType).id;
+    if (!budgetId) {
       console.error('更新预算时缺少 budget.id');
       return;
     }
     try {
-      const response = await fetch(`/api/budget/${budget.id}`, {
+      const response = await fetch(`/api/budget/${budgetId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
