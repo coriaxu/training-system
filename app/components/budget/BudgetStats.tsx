@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { BudgetData, getBudgetByMonth } from '@/app/lib/budgetStorage';
-import { Expense, getExpenses } from '@/app/lib/expenseStorage';
+import { getExpenses } from '@/app/lib/expenseStorage';
+import { Expense } from '@/types/budget';
 
 export function BudgetStats() {
   const [currentBudget, setCurrentBudget] = useState<BudgetData | null>(null);
