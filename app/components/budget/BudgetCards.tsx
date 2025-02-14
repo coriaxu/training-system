@@ -40,7 +40,12 @@ export default function BudgetCards({
 
   const handleDelete = async () => {
     if (window.confirm('确定要删除这个预算吗？')) {
-      await onDelete(budget.id);
+      const budgetId = (budget as Budget).id;
+      if (!budgetId) {
+        console.error('删除预算时缺少 budget.id');
+        return;
+      }
+      await onDelete(budgetId);
     }
   };
 
