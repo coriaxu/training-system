@@ -2,21 +2,15 @@
 
 import { Fragment, useEffect, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { Budget } from '@/types/budget';
+import { Budget, BudgetFormData, Expense } from '@/types/budget';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
 interface ExpenseDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: any) => void;
-  expense?: {
-    id: string;
-    type: string;
-    amount: number;
-    description: string;
-    date: string;
-  } | null;
-  budget: Budget;
+  expense: Expense | null;
+  budget: BudgetFormData;
 }
 
 export default function ExpenseDialog({
