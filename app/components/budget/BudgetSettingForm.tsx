@@ -2,13 +2,12 @@
 
 import { X } from 'lucide-react';
 import { useState } from 'react';
-import { BUDGET_TYPES } from '@/app/lib/constants'; // 请确保 constants.ts 文件中 BUDGET_TYPES 的定义正确
-
-import { Budget, BudgetType } from '@/types/budget'; // 引入 BudgetType
+import { BUDGET_TYPES } from '@/app/lib/constants';
+import { Budget, BudgetFormData } from '@/types/budget';
 
 interface BudgetSettingFormProps {
   onClose: () => void;
-  onSubmit: (data: { month: string; courseTypeBudgets: { type: BudgetType; amount: number }[] }) => void; //  onSubmit 接收更精简的数据结构，类型更明确
+  onSubmit: (data: { month: string; courseTypeBudgets: { type: string; amount: number }[] }) => void;
 }
 
 export function BudgetSettingForm({ onClose, onSubmit }: BudgetSettingFormProps) {
@@ -16,17 +15,17 @@ export function BudgetSettingForm({ onClose, onSubmit }: BudgetSettingFormProps)
     month: new Date().toISOString().split('-').slice(0, 2).join('-'),
     budgets: Object.fromEntries(
       BUDGET_TYPES.map(type => [type, 0])
-    ) as Record<BudgetType, number> //  明确 budgets 的类型为 Record<BudgetType, number>
+    ) as Record<string, number>
   });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const courseTypeBudgets = Object.entries(formData.budgets).map(([type, amount]) => ({
-      type: type as BudgetType, //  类型断言，确保 type 是 BudgetType
+      type,
       amount
     }));
 
-    onSubmit({ //  onSubmit 只传递 month 和 courseTypeBudgets
+    onSubmit({ 
       month: formData.month,
       courseTypeBudgets
     });
@@ -77,13 +76,13 @@ export function BudgetSettingForm({ onClose, onSubmit }: BudgetSettingFormProps)
                   type="number"
                   min="0"
                   step="0.01"
-                  value={formData.budgets[type as BudgetType]} // 类型断言，确保 type 是 BudgetType
+                  value={formData.budgets[type]} 
                   onChange={(e) =>
                     setFormData({
                       ...formData,
                       budgets: {
                         ...formData.budgets,
-                        [type as BudgetType]: parseFloat(e.target.value) || 0, // 类型断言，确保 type 是 BudgetType
+                        [type]: parseFloat(e.target.value) || 0, 
                       },
                     })
                   }
