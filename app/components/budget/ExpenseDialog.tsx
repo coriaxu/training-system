@@ -34,8 +34,8 @@ export default function ExpenseDialog({
       setFormData({
         type: expense.type,
         amount: expense.amount.toString(),
-        description: expense.description,
-        date: expense.date,
+        description: '',  
+        date: expense.date.toISOString().split('T')[0],
       });
     } else {
       setFormData({
