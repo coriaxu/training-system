@@ -21,7 +21,7 @@ export function BudgetStats() {
   const calculateExpensesByType = () => {
     const expensesByType: Record<string, number> = {};
     expenses.forEach(expense => {
-      expensesByType[expense.budgetType] = (expensesByType[expense.budgetType] || 0) + expense.amount;
+      expensesByType[expense.type] = (expensesByType[expense.type] || 0) + expense.amount;
     });
     return expensesByType;
   };
