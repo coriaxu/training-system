@@ -1,6 +1,6 @@
+import * as XLSX from 'xlsx';
 import { NextResponse } from 'next/server';
-import XLSX from 'xlsx';
-import { db } from '@/app/lib/db';
+import { prisma } from '@/app/lib/db';
 import { historicalTrainings } from '@/app/lib/schema';
 import { validateTrainingData } from '@/app/lib/validators';
 
@@ -28,9 +28,11 @@ export async function POST(req: Request) {
     }
 
     // 数据库存储
-    await db.transaction(async (tx) => {
-      await tx.insert(historicalTrainings).values(validationResult.validData);
-    });
+    await prisma.$transaction([
+      prisma.historicalTrainings.createMany({
+        data: validationResult.validData,
+      }),
+    ]);
 
     return NextResponse.json({ 
       success: true,

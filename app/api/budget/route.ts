@@ -67,7 +67,7 @@ export async function POST(request: Request) {
             totalBudget: data.totalBudget,
             notes: data.notes,
             courseTypeBudgets: {
-              create: data.courseTypeBudgets.map(b => ({
+              create: data.courseTypeBudgets.map((b: { type: string; amount: number }) => ({
                 type: b.type,
                 amount: b.amount
               }))
@@ -83,7 +83,7 @@ export async function POST(request: Request) {
             totalBudget: data.totalBudget,
             notes: data.notes,
             courseTypeBudgets: {
-              create: data.courseTypeBudgets.map(b => ({
+              create: data.courseTypeBudgets.map((b: { type: string; amount: number }) => ({
                 type: b.type,
                 amount: b.amount
               }))

@@ -1,15 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getTrainings } from '@/app/lib/storage';
-import { TrainingRecord } from '@/app/lib/storage';
+import { prisma } from '@/app/lib/db';
+import { TrainingRecord } from '@/types/training';
 
 export default function OptimizationSuggestions() {
   const [suggestions, setSuggestions] = useState<string[]>([]);
 
   useEffect(() => {
     const analyzeTrainings = async () => {
-      const trainings = await getTrainings();
+      const trainings = await prisma.training.findMany();
       const analyzedSuggestions = generateSuggestions(trainings);
       setSuggestions(analyzedSuggestions);
     };
