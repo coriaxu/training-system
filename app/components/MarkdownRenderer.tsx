@@ -1,8 +1,9 @@
 'use client';
 
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { Components, CodeProps } from 'react-markdown/lib/ast-to-react';
+import { ReactMarkdownOptions } from 'react-markdown';
 
 interface MarkdownRendererProps {
   content: string;
@@ -13,7 +14,7 @@ export function MarkdownRenderer({
   content,
   className = '',
 }: MarkdownRendererProps) {
-  const components: Components = {
+  const components: ReactMarkdownOptions['components'] = {
     h1: ({ children }) => (
       <h1 className="text-2xl font-bold text-gray-900 mb-4">{children}</h1>
     ),
@@ -47,16 +48,18 @@ export function MarkdownRenderer({
         {children}
       </blockquote>
     ),
-    code: ({ inline, className, children }: CodeProps) => {
+    code({ node, inline, className, children, ...props }) {
       const match = /language-(\w+)/.exec(className || '');
-      return !inline ? (
-        <pre className="bg-gray-50 rounded-lg p-4 overflow-x-auto">
-          <code className={match ? `language-${match[1]}` : ''}>
-            {String(children).replace(/\n$/, '')}
-          </code>
-        </pre>
+      return !inline && match ? (
+        <SyntaxHighlighter
+          language={match[1]}
+          PreTag="div"
+          {...props}
+        >
+          {String(children).replace(/\n$/, '')}
+        </SyntaxHighlighter>
       ) : (
-        <code className="bg-gray-100 rounded px-1 py-0.5 text-sm">
+        <code className={className} {...props}>
           {children}
         </code>
       );
@@ -88,12 +91,13 @@ export function MarkdownRenderer({
   };
 
   return (
-    <ReactMarkdown
-      className={`prose prose-sm prose-slate max-w-none ${className}`}
-      remarkPlugins={[remarkGfm]}
-      components={components}
-    >
-      {content}
-    </ReactMarkdown>
+    <div className={`prose prose-sm max-w-none dark:prose-invert ${className}`}>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={components}
+      >
+        {content}
+      </ReactMarkdown>
+    </div>
   );
 }
