@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getAllTrainings } from '@/app/lib/storage';
+import { getTrainings } from '@/app/lib/storage';
 import { TrainingRecord } from '@/app/lib/storage';
 
 export default function OptimizationSuggestions() {
@@ -9,7 +9,7 @@ export default function OptimizationSuggestions() {
 
   useEffect(() => {
     const analyzeTrainings = async () => {
-      const trainings = await getAllTrainings();
+      const trainings = await getTrainings();
       const analyzedSuggestions = generateSuggestions(trainings);
       setSuggestions(analyzedSuggestions);
     };

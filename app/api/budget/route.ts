@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     }
 
     // 检查每个课程类型预算的数据格式
-    const isValidBudgetItem = data.courseTypeBudgets.every(item => 
+    const isValidBudgetItem = data.courseTypeBudgets.every((item: { type: string; amount: number }) => 
       typeof item.type === 'string' && 
       typeof item.amount === 'number'
     );
