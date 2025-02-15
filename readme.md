@@ -19,6 +19,30 @@
 
 - Node.js 18.0.0 或更高版本
 - 现代浏览器（Chrome、Firefox、Safari、Edge 等）
+- DeepSeek API Key（用于 AI 洞察功能）
+
+### 环境变量配置
+
+1. 复制 `.env.example` 文件并重命名为 `.env.local`：
+
+```bash
+cp .env.example .env.local
+```
+
+2. 在 `.env.local` 中填入必要的环境变量：
+
+```bash
+# Vercel Postgres 数据库配置
+POSTGRES_URL="your-postgres-url-here"
+POSTGRES_URL_NON_POOLING="your-postgres-url-non-pooling-here"
+
+# DeepSeek API 配置
+DEEPSEEK_API_KEY="your-api-key-here"
+```
+
+注意：
+- 不要将包含敏感信息的 `.env.local` 文件提交到版本控制系统
+- 在 Vercel 部署时，需要在项目设置中配置相同的环境变量
 
 ### 安装依赖
 
@@ -87,7 +111,7 @@ yarn dev
 - **UI 框架**：Tailwind CSS
 - **图表库**：Recharts
 - **图标库**：Lucide React
-- **数据存储**：JSON 文件（初期）
+- **数据存储**：Vercel Postgres
 - **AI 能力**：DeepSeek API
 
 ## 设计规范
@@ -99,33 +123,21 @@ yarn dev
 - **主色调**：深邃蓝色 (#0F4264)
 - **辅助色**：
   - 较亮蓝色 (#2D71A1)
-  - 背景灰白 (#F8F8F8)
-  - 纯白色 (#FFFFFF)
-  - 文本深灰 (#555555)
-  - 辅助浅灰 (#AAAAAA)
 
-### 字体规范
+## 部署说明
 
-- **系统字体**：Helvetica Neue (macOS) / Arial (Windows) / Roboto (Android)
-- **字体层级**：
-  - 大标题：28px - 36px，Bold
-  - 模块标题：22px - 26px，Bold
-  - 正文：16px，Regular
-  - 辅助文本：14px，Regular
+### Vercel 部署
 
-## 开发计划
+1. Fork 本项目到你的 GitHub 账号
+2. 在 Vercel 中导入项目
+3. 配置环境变量：
+   - `POSTGRES_URL`
+   - `POSTGRES_URL_NON_POOLING`
+   - `DEEPSEEK_API_KEY`
+4. 部署项目
 
-1. [x] 需求与设计确认
-2. [ ] 数据结构与录入表单开发
-3. [ ] 图表与统计功能开发
-4. [ ] AI 接口对接与洞察功能开发
-5. [ ] 导出 Excel 功能开发
-6. [ ] 部署与测试
-7. [ ] 持续迭代优化
+### 注意事项
 
-## 注意事项
-
-1. **数据安全**：初期面向个人用户，数据存储在本地，安全性要求相对较低
-2. **AI 接口**：需要配置 DeepSeek API Key（请参考 .env.example 文件）
-3. **浏览器兼容**：推荐使用现代浏览器访问系统
-4. **开发环境**：建议使用 Node.js 18+ 版本进行开发
+- 确保所有环境变量都已正确配置
+- 使用 Edge Runtime 以获得最佳性能
+- 定期备份数据库数据

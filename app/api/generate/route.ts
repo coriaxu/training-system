@@ -1,10 +1,9 @@
-import { OpenAIStream, StreamingTextResponse } from 'ai';
-import OpenAI from 'openai';
-import { TrainingRecord } from '@/lib/storage';
+import { DeepSeekAPI } from 'deepseek-api';
+import { TrainingRecord } from '../../../lib/storage';
 
-// 创建 OpenAI 客户端
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+// 创建 DeepSeek 客户端
+const deepseek = new DeepSeekAPI({
+  apiKey: process.env.DEEPSEEK_API_KEY,
 });
 
 export const runtime = 'edge';
@@ -23,20 +22,36 @@ export async function POST(req: Request) {
 
 请使用 Markdown 格式输出报告。`;
 
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4-turbo-preview',
+  const response = await deepseek.chat.completions.create({
+    model: 'deepseek-chat',
     stream: true,
     messages: [
       { role: 'system', content: systemPrompt },
       {
         role: 'user',
-        content: \`请分析以下培训记录数据：\${JSON.stringify(data, null, 2)}\`,
+        content: `请分析以下培训记录数据：${JSON.stringify(data, null, 2)}`,
       },
     ],
     temperature: 0.7,
     max_tokens: 2000,
   });
 
-  const stream = OpenAIStream(response);
-  return new StreamingTextResponse(stream);
+  // 创建一个 TransformStream 来处理 DeepSeek 的响应
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  
+  const transformStream = new TransformStream({
+    async transform(chunk, controller) {
+      const text = decoder.decode(chunk);
+      controller.enqueue(encoder.encode(text));
+    },
+  });
+
+  return new Response(response.toReadableStream().pipeThrough(transformStream), {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    },
+  });
 }

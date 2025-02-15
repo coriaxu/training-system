@@ -28,6 +28,7 @@
     "ai": "^4.1.39",
     "chart.js": "^4.4.7",
     "date-fns": "^4.1.0",
+    "deepseek-api": "^1.0.6",
     "drizzle-orm": "^0.38.4",
     "file-saver": "^2.0.5",
     "lucide-react": "^0.294.0",

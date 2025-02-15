@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useCompletion } from 'ai/react';
-import { TrainingRecord } from '../lib/storage';
+import { TrainingRecord } from '../../lib/storage';
 import { Loader2, Lightbulb } from 'lucide-react';
 import MarkdownRenderer from './MarkdownRenderer';
 
@@ -11,27 +10,49 @@ interface AIInsightsProps {
 }
 
 export default function AIInsights({ data }: AIInsightsProps) {
+  const [insights, setInsights] = useState<string>('');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const {
-    completion: insights,
-    complete,
-    isLoading: loading,
-  } = useCompletion({
-    api: '/api/generate',
-    onError: (err) => {
-      setError('生成洞察报告时出错，请稍后重试');
-      console.error('Error generating insights:', err);
-    },
-  });
-
   const handleGenerateInsights = async () => {
+    setLoading(true);
     setError(null);
+    setInsights('');
+
     try {
-      await complete(JSON.stringify(data));
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt: JSON.stringify(data) }),
+      });
+
+      if (!response.ok) {
+        throw new Error('生成洞察报告时出错');
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('无法读取响应流');
+      }
+
+      const decoder = new TextDecoder();
+      let text = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        text += chunk;
+        setInsights(text);
+      }
     } catch (err) {
       setError('生成洞察报告时出错，请稍后重试');
       console.error('Error generating insights:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
